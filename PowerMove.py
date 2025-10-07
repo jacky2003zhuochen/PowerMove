@@ -7,6 +7,7 @@ import matplotlib.pyplot as plt
 import networkx as nx
 import math
 import copy
+from collections import deque
 
 N_Block = 1
 X_SEP = 19
@@ -37,6 +38,57 @@ def update(pos, qubit_map, moves, storage_in_move):
 
     return pos, qubit_map
 
+def sabre_initial_layout(cz_blocks, N, dimension):
+    from qiskit import QuantumCircuit, transpile  # type: ignore
+    from qiskit.transpiler import CouplingMap  # type: ignore
+
+    X = dimension[0]
+    Y = dimension[1]
+
+    # build coupling graph
+    pos_dict = {}
+    coupling_graph = []
+    for i in range(X):
+        for j in range(Y):
+            pos_dict[i * Y + j] = (i, j)
+            if i:
+                coupling_graph.append([i * Y + j, (i - 1) * Y + j])
+                coupling_graph.append([(i - 1) * Y + j, i * Y + j])
+            if j:
+                coupling_graph.append([i * Y + j, i * Y + j - 1])
+                coupling_graph.append([i * Y + j - 1, i * Y + j])
+
+    coupling_graph = CouplingMap(couplinglist=coupling_graph)
+
+    # build a virtual circuit
+    circ = QuantumCircuit(N)
+    for block in cz_blocks:
+        for cz_gate in block:
+            circ.cz(cz_gate[0], cz_gate[1])
+
+    tcirc = transpile(
+        circ,
+        coupling_map=coupling_graph,
+        layout_method="sabre",
+        routing_method="sabre",
+        seed_transpiler=42,
+    )
+    qiskit_layout = tcirc.layout
+
+    if qiskit_layout is None:
+        raise RuntimeError("Sabre algorithm failed to find a layout")
+
+    layout = qiskit_layout.initial_layout
+
+    qubit_mapping = {}
+    idx = 0
+    for lbit in layout.get_virtual_bits():
+        if idx >= N:
+            break
+        qubit_mapping[idx] = pos_dict[layout[lbit]]
+        idx += 1
+    return qubit_mapping
+
 def mvqc(cz_blocks, Row, n, storage_flag, d, num_aod, location_size=2):
     N_Block = d
 
@@ -50,7 +102,8 @@ def mvqc(cz_blocks, Row, n, storage_flag, d, num_aod, location_size=2):
         for gates in cz_blocks:
             list_gates += storage_gate_scheduling(gates, storage_flag)
     # print(len(list_gates), "stages")
-    qubit_mapping = place_qubit((Row, Row), n, list_gates, True)
+    qubit_mapping = list(sabre_initial_layout(cz_blocks, n, (Row, Row)).values())
+    # qubit_mapping = place_qubit((Row, Row), n, list_gates, True)
 
     cir_fidelity_2q_gate = 1
     cir_fidelity_2q_gate_for_idle = 1 
@@ -122,7 +175,9 @@ def mvqc(cz_blocks, Row, n, storage_flag, d, num_aod, location_size=2):
     # print(qubit_map.nodes(), pos)
     #[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19] 
     #{0: (2, 3), 1: (3, 1), 2: (0, 2), 3: (2, 1), 4: (1, 2), 5: (3, 2), 6: (2, 0), 7: (1, 3), 8: (3, 4), 9: (4, 1), 10: (0, 3), 11: (2, 2), 12: (4, 0), 13: (2, 4), 14: (3, 3), 15: (1, 1), 16: (4, 3), 17: (3, 0), 18: (0, 1), 19: (1, 4)}
-    for mg in list_gates:
+    list_gates = deque(list_gates)
+    while len(list_gates)>0:
+        mg = list_gates.popleft()
         cir_fidelity_2q_gate *= pow(Fidelity_2Q_Gate, len(mg))
 
         move_in_qubits = []
@@ -152,7 +207,7 @@ def mvqc(cz_blocks, Row, n, storage_flag, d, num_aod, location_size=2):
 
         location_index = copy.deepcopy(target_location_index)
         initial_space = copy.deepcopy(empty_space)
-        move_group, empty_space, rq_moved_pos, qmg, storage_in_move, target_location_index = continuous_router(mg, pos, empty_space, move_out_qubits, move_in_qubits, storage_flag, Row, location_index, target_location_index)
+        move_group, empty_space, rq_moved_pos, qmg, storage_in_move, target_location_index = continuous_router(mg, pos, empty_space, move_out_qubits, move_in_qubits, storage_flag, Row, location_index, target_location_index, location_size)
 
         move_distance = {}
         # for move in move_group:
@@ -182,9 +237,39 @@ def mvqc(cz_blocks, Row, n, storage_flag, d, num_aod, location_size=2):
         #     if empty_space[pos[m[1]]].find(m[0]) == -1:
         #         empty_space[pos[m[1]]].append(m[0])
         # coll moves
-        empty_space, parallel_move_groups, num_movement_stage, cir_qubit_idle_time, cir_fidelity_atom_transfer, list_transfer_duration, list_movement_duration, target_location_index, change_dest = coll_moves_scheduler(empty_space, initial_space, n, Row, move_distance, move_group, num_aod, move_in_qubits, move_out_qubits,
-         qubits_not_in_storage, cir_qubit_idle_time, cir_fidelity_atom_transfer, list_transfer_duration,
-         list_movement_duration, num_movement_stage, location_index, target_location_index, location_size)
+        empty_space, parallel_move_groups, num_movement_stage, cir_qubit_idle_time, cir_fidelity_atom_transfer, list_transfer_duration, list_movement_duration, target_location_index, change_dest, move_in_loop = coll_moves_scheduler(empty_space, initial_space, n, Row, move_distance, move_group, num_aod, move_in_qubits, move_out_qubits,
+        qubits_not_in_storage, cir_qubit_idle_time, cir_fidelity_atom_transfer, list_transfer_duration,
+        list_movement_duration, num_movement_stage, location_index, target_location_index, location_size)
+
+        ###################################################################################################################
+        # trivial task reduction
+        new_mg = []
+        if len(move_in_loop) != 0:
+            for m in move_in_loop:
+                q1 = m[0]
+                q_list = copy.deepcopy(empty_space[(m[2][0], m[2][1])])
+                q_list.remove(q1)
+                if len(q_list)>0:
+                    q2 = q_list[0]
+                    new_mg.append((q1,q2))
+                    if (q1,q2) in mg:
+                        mg.remove((q1,q2))
+                    else:
+                        mg.remove((q2,q1))
+                else:
+                    q_list = copy.deepcopy(empty_space[(m[1][0], m[1][1])])
+                    new_mg.append((q_list[0],q_list[1]))
+                    if (q_list[0],q_list[1]) in mg:
+                        mg.remove((q_list[0],q_list[1]))
+                    else:
+                        mg.remove((q_list[1],q_list[0]))
+            empty_space = copy.deepcopy(initial_space)
+            target_location_index = copy.deepcopy(location_index)
+            list_gates.appendleft(new_mg)
+            list_gates.appendleft(mg)
+            print("task split")
+            continue
+
 
         print("one stage finished")
 

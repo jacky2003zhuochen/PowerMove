@@ -1,6 +1,6 @@
 import copy 
 
-def continuous_router(mg, pos, empty_space, move_out_qubits, move_in_qubits, storage_flag, Row, location_index, target_location_index):
+def continuous_router(mg, pos, empty_space, move_out_qubits, move_in_qubits, storage_flag, Row, location_index, target_location_index, location_size):
 
     def get_pos(q):
         return pos[q][1]
@@ -24,7 +24,6 @@ def continuous_router(mg, pos, empty_space, move_out_qubits, move_in_qubits, sto
             redundant_qubits_to_be_moved.append(q1)
             empty_space[pos[q0]].remove(q0)
             empty_space[pos[q1]].remove(q1)
-            target_location_index[q0] = 1
             
             # print('in move redundant', redundant_qubits_to_be_moved)
             
@@ -40,17 +39,12 @@ def continuous_router(mg, pos, empty_space, move_out_qubits, move_in_qubits, sto
                 qmg.append(move)
                 moved_qubits.append(q0)
                 empty_space[pos[q0]].remove(q0)
-                if location_index[q1] == 0:
-                    target_location_index[q0] = 1
-                else:
-                    target_location_index[q0] = 0
             else:
                 qmg.append(move)
                 moved_qubits.append(q0)
                 redundant_qubits_to_be_moved.append(q1)
                 empty_space[pos[q0]].remove(q0)
                 empty_space[pos[q1]].remove(q1)
-                target_location_index[q0] = 1
                 # print('in move redundant', redundant_qubits_to_be_moved)
             
             # storage_occ[pos[q0][0]] += 1                               
@@ -64,17 +58,12 @@ def continuous_router(mg, pos, empty_space, move_out_qubits, move_in_qubits, sto
                 qmg.append((q1, q0))
                 moved_qubits.append(q1)
                 empty_space[pos[q1]].remove(q1)
-                if location_index[q0] == 0:
-                    target_location_index[q1] = 1
-                else:
-                    target_location_index[q1] = 0
             else:
                 qmg.append((q1, q0))
                 moved_qubits.append(q1)
                 redundant_qubits_to_be_moved.append(q0)
                 empty_space[pos[q0]].remove(q0)
                 empty_space[pos[q1]].remove(q1)
-                target_location_index[q1] = 1
                 # print('in move redundant', redundant_qubits_to_be_moved)
             
             # storage_occ[pos[q1][0]] += 1                  
@@ -88,10 +77,6 @@ def continuous_router(mg, pos, empty_space, move_out_qubits, move_in_qubits, sto
                 qmg.append(move)
                 moved_qubits.append(q0)
                 empty_space[pos[q0]].remove(q0)
-                if location_index[q1] == 0:
-                    target_location_index[q0] = 1
-                else:
-                    target_location_index[q0] = 0
             elif pos_q0 not in static_pos.keys():
                 # static_num[pos_q0] = static_num.get(pos_q0, 0) + 1
                 # if static_num[pos_q0] >= location_size - 1:
@@ -100,10 +85,7 @@ def continuous_router(mg, pos, empty_space, move_out_qubits, move_in_qubits, sto
                 qmg.append((q1, q0))
                 moved_qubits.append(q1)
                 empty_space[pos[q1]].remove(q1)
-                if location_index[q0] == 0:
-                    target_location_index[q1] = 1
-                else:
-                    target_location_index[q1] = 0
+
             else:
                 qmg.append(move)
                 moved_qubits.append(q0)
@@ -111,7 +93,6 @@ def continuous_router(mg, pos, empty_space, move_out_qubits, move_in_qubits, sto
                 # print(q0,q1)
                 empty_space[pos[q0]].remove(q0)
                 empty_space[pos[q1]].remove(q1)
-                target_location_index[q0] = 1
                 # print('in move redundant', redundant_qubits_to_be_moved)
 
     storage_in_move = {}
@@ -160,6 +141,7 @@ def continuous_router(mg, pos, empty_space, move_out_qubits, move_in_qubits, sto
                             # qubit_map.nodes[rq]['pos'] = pos[rq]
                             rq_moved_pos[rq] = (npos_x, npos_y)
                             pos_find_flag = True
+                            # if False:
                             if len(init_space[(npos_x, npos_y)])==1:
                                 target_location_index[rq] = (location_index[init_space[(npos_x,npos_y)][0]]+1)%2
                             else:
@@ -181,6 +163,7 @@ def continuous_router(mg, pos, empty_space, move_out_qubits, move_in_qubits, sto
     # formulate qmg (q0, q1) into move_group (q, pos)
     for qm in qmg:
         if pos[qm[1]] in static_pos.keys() and qm[1] == static_pos[pos[qm[1]]]:
+            target_location_index[qm[0]] = (location_index[qm[1]] + 1) % location_size
             move_group.append((
                 qm[0], 
                 (pos[qm[0]][0], pos[qm[0]][1], location_index[qm[0]]), 
@@ -188,6 +171,7 @@ def continuous_router(mg, pos, empty_space, move_out_qubits, move_in_qubits, sto
             ))
             empty_space[pos[qm[1]]].append(qm[0])
         else:
+            target_location_index[qm[0]] = (location_index[qm[1]] + 1) % location_size
             move_group.append((
                 qm[0], 
                 (pos[qm[0]][0], pos[qm[0]][1], location_index[qm[0]]), 
@@ -210,5 +194,6 @@ def continuous_router(mg, pos, empty_space, move_out_qubits, move_in_qubits, sto
             (storage_in_move[sq][0], storage_in_move[sq][1], target_location_index[sq])
         ))
         empty_space[storage_in_move[sq]].append(sq)
-
+    # for m in move_group:
+    #     if m[0] in 
     return move_group, empty_space, rq_moved_pos, qmg, storage_in_move, target_location_index

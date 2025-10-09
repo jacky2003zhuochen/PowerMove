@@ -63,7 +63,7 @@ for degree in range(1,11):
             continue
         
         mvqc_start_time = time.time()
-        mvqc_transfer_duration, mvqc_move_duration, mvqc_cir_fidelity, mvqc_cir_fidelity_1q_gate, mvqc_cir_fidelity_2q_gate, mvqc_cir_fidelity_2q_gate_for_idle, mvqc_cir_fidelity_atom_transfer, mvqc_cir_fidelity_coherence, mvqc_nstage = mvqc([gates], Row, n, False, d, 1)
+        mvqc_transfer_duration, mvqc_move_duration, mvqc_cir_fidelity, mvqc_cir_fidelity_1q_gate, mvqc_cir_fidelity_2q_gate, mvqc_cir_fidelity_2q_gate_for_idle, mvqc_cir_fidelity_atom_transfer, mvqc_cir_fidelity_coherence, mvqc_nstage = mvqc([gates], Row, n, False, d, 1, method)
         mvqc_runtime.append(time.time() - mvqc_start_time)
         
         mvqc_transfer_duration_list.append(mvqc_transfer_duration)
@@ -90,7 +90,7 @@ for degree in range(1,11):
         # enola_cir_fidelity_coherence_list.append(enola_cir_fidelity_coherence)  
         # enola_nstage_list.append(enola_nstage)
 
-    with open(f"data/qaoa_regular{degree}_no_storage_compare_change_dest.txt", 'w') as file:
+    with open(f"data/qaoa_regular{degree}_no_storage_compare_change_dest+move_split.txt", 'w') as file:
         # file.write(str(N_Qubit_List) + '\n')
         file.write(str(q_list) + '\n')        
         file.write(str([x + y for x, y in zip(mvqc_transfer_duration_list, mvqc_move_duration_list)]) + '\n') 

@@ -33,15 +33,24 @@ import json
 
 method_list = ['base', "move_split", "change_dest", "change_dest+move_split"]
 N_Qubit_Dic = {}
+P_List = [0.1, 0.2, 0.3, 0.4, 0.5]
+N_Qubit_List = [5, 10, 20, 30 ,50, 100]
+# N_Qubit_List = [6, 15, 30, 40, 50, 70, 80]
+# N_Qubit_List = [6, 10, 20, 30, 40, 50, 60, 80, 100]
 duration_list = {}
 # for method in method_list:
 #     duration_list[method] = []
-for degree in range(1,11):
+# for degree in range(1,11):
+for p in P_List:
+# for p in [0.5]:
     for method in method_list:
-        path = f"data/qaoa_regular{degree}_no_storage_compare_{method}.txt"
+        # path = f"data/qaoa_regular{degree}_no_storage_compare_{method}.txt"
+        # path = f"data/qaoa_random_no_storage{p}_compare_{method}.txt"
+        path = f"data/qaoa_random_new_qLayout_no_storage{p}_compare_{method}.txt"
+        # path = f"data/new_compare_vqe_{method}.txt"
         try:
             with open(path, "r", encoding="utf-8") as f:
-                N_Qubit_Dic[method] = json.loads(f.readline().strip())
+                # N_Qubit_Dic[method] = json.loads(f.readline().strip())
                 duration_list[method] = json.loads(f.readline().strip())
                 # print(first_line)
         except FileNotFoundError:
@@ -51,12 +60,13 @@ for degree in range(1,11):
         # else:
         #     marker = 'v'
         marker = 'o'
-        plt.plot(N_Qubit_Dic[method], duration_list[method], marker=marker, label=f"{method}")
-    plt.title(f"qaoa_regular{degree}")
+        # plt.plot(N_Qubit_Dic[method], duration_list[method], marker=marker, label=f"{method}")
+        plt.plot(N_Qubit_List, duration_list[method], marker=marker, label=f"{method}")
+    plt.title(f"QAOA Rand")
     plt.legend()
     plt.xlabel("qubit")
     plt.ylabel("duration list")
-    plt.savefig(f"compare_duration_qaoa_regular{degree}.png")
+    plt.savefig(f"fig/new_compare_qaoa_rand{p}_new_qLayout.png")
     plt.clf()
 
 

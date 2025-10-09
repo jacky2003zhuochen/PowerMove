@@ -4,3 +4,4 @@ ipykernel
 tabulate
 qiskit
 qiskit-aer
+qiskit_qasm3_import

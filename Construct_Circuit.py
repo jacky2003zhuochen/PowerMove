@@ -1,5 +1,7 @@
 import numpy as np
 from qiskit import QuantumCircuit, transpile
+from qiskit.converters import circuit_to_dag
+from qiskit._accelerate.circuit import DAGOutNode
 
 def get_cz_blocks(circuit):
     qubit_cz_gate_map = {}
@@ -67,6 +69,68 @@ def get_cz_blocks(circuit):
 
     return blocks
 
+def to_op_type(op):
+    if op.name == 'cz':
+        return 'CZ'
+    elif op.name == 't':
+        return 'T'
+    else:
+        return 'SG'
+    
+# def get_cz_blocks(circuit):
+#     dag = circuit_to_dag(circuit)
+#     front_ops = set(dag.front_layer())
+#     gate_blocks = []
+#     block_types = []
+#     while dag.size():
+#         if len(block_types):
+#             cur_type = block_types[-1]
+#         else:
+#             cur_type = to_op_type(list(front_ops)[0])
+#             block_types.append(cur_type)
+#             gate_blocks.append(set())
+
+#         add_idx = 0
+#         for op in front_ops.copy():
+#             op_type = to_op_type(op)
+#             q_args = [q._index for q in op.qargs]
+#             if op_type == cur_type:
+#                 if cur_type != 'CZ':
+#                     if q_args[0] in gate_blocks[-1]:
+#                         continue
+#                 add_idx += 1
+#                 if len(q_args) > 1:
+#                     gate_blocks[-1].add(tuple(q_args))
+#                 else:
+#                     gate_blocks[-1].add(q_args[0])
+
+#                 added_front_ops = list(dag.successors(op))
+#                 dag.remove_op_node(op)
+#                 front_ops.remove(op)
+#                 for sop in added_front_ops:
+#                     if len(list(dag.op_predecessors(sop))) == 0:
+#                         if not isinstance(sop, DAGOutNode):
+#                             front_ops.add(sop)
+
+
+            
+#         if not add_idx:
+#             cur_type = to_op_type(list(front_ops)[0])
+#             block_types.append(cur_type)
+#             gate_blocks.append(set())
+            
+#     # print(gate_blocks)
+#     # print(block_types)
+#     blocks = []
+
+#     for i, b in enumerate(gate_blocks):
+#         if block_types[i] == 'CZ':
+#             blocks.append(b)
+#             # print("block size", i, len(b))
+
+#     # print("blocks", blocks)
+#     return blocks
+
 def pauli_strings_to_qiskit_circuit(pauli_strings, keep_length=None):
     if keep_length is not None:
         pauli_strings = pauli_strings[:keep_length]
@@ -110,7 +174,7 @@ class QsimRandBenchmark():
         self.p = p
         self.i = i
         self.path = f"benchmarks/qsim/rand/q{n_qubits}_{keep_length}_p{p}/i{i}.txt"
-        print(self.path)
+        # print(self.path)
 
         with open(self.path, "r") as fid:
             self.pauli_strings = eval(fid.read())[0:keep_length]

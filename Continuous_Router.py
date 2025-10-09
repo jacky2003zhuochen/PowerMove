@@ -1,6 +1,6 @@
 import copy 
 
-def continuous_router(mg, pos, empty_space, move_out_qubits, move_in_qubits, storage_flag, Row, location_index, target_location_index, location_size):
+def continuous_router(mg, pos, empty_space, move_out_qubits, move_in_qubits, storage_flag, Row, location_index, target_location_index, location_size, method):
 
     def get_pos(q):
         return pos[q][1]
@@ -142,7 +142,7 @@ def continuous_router(mg, pos, empty_space, move_out_qubits, move_in_qubits, sto
                             rq_moved_pos[rq] = (npos_x, npos_y)
                             pos_find_flag = True
                             # if False:
-                            if len(init_space[(npos_x, npos_y)])==1:
+                            if ((method == 'change_dest') or (method == 'change_dest+move_split')) and (len(init_space[(npos_x, npos_y)])==1):
                                 target_location_index[rq] = (location_index[init_space[(npos_x,npos_y)][0]]+1)%2
                             else:
                                 target_location_index[rq] = 0     
@@ -194,6 +194,9 @@ def continuous_router(mg, pos, empty_space, move_out_qubits, move_in_qubits, sto
             (storage_in_move[sq][0], storage_in_move[sq][1], target_location_index[sq])
         ))
         empty_space[storage_in_move[sq]].append(sq)
-    # for m in move_group:
-    #     if m[0] in 
+    for m in move_group:
+        if m[0] in empty_space[(m[1][0], m[1][1])]:
+            empty_space[(m[1][0], m[1][1])].remove(m[0])
+        if m[0] not in empty_space[(m[2][0], m[2][1])]:
+            empty_space[(m[2][0], m[2][1])].append(m[0])
     return move_group, empty_space, rq_moved_pos, qmg, storage_in_move, target_location_index

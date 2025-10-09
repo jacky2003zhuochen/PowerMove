@@ -89,7 +89,7 @@ def sabre_initial_layout(cz_blocks, N, dimension):
         idx += 1
     return qubit_mapping
 
-def mvqc(cz_blocks, Row, n, storage_flag, d, num_aod, location_size=2):
+def mvqc(cz_blocks, Row, n, storage_flag, d, num_aod, method, location_size=2):
     N_Block = d
 
     if not storage_flag:
@@ -117,6 +117,8 @@ def mvqc(cz_blocks, Row, n, storage_flag, d, num_aod, location_size=2):
     cir_qubit_idle_time = []
     list_movement_duration = []
     list_transfer_duration = []
+    count = defaultdict(int)
+    loop_num = 0
     
 
     for i in range(n):
@@ -207,7 +209,7 @@ def mvqc(cz_blocks, Row, n, storage_flag, d, num_aod, location_size=2):
 
         location_index = copy.deepcopy(target_location_index)
         initial_space = copy.deepcopy(empty_space)
-        move_group, empty_space, rq_moved_pos, qmg, storage_in_move, target_location_index = continuous_router(mg, pos, empty_space, move_out_qubits, move_in_qubits, storage_flag, Row, location_index, target_location_index, location_size)
+        move_group, empty_space, rq_moved_pos, qmg, storage_in_move, target_location_index = continuous_router(mg, pos, empty_space, move_out_qubits, move_in_qubits, storage_flag, Row, location_index, target_location_index, location_size, method)
 
         move_distance = {}
         # for move in move_group:
@@ -237,9 +239,9 @@ def mvqc(cz_blocks, Row, n, storage_flag, d, num_aod, location_size=2):
         #     if empty_space[pos[m[1]]].find(m[0]) == -1:
         #         empty_space[pos[m[1]]].append(m[0])
         # coll moves
-        empty_space, parallel_move_groups, num_movement_stage, cir_qubit_idle_time, cir_fidelity_atom_transfer, list_transfer_duration, list_movement_duration, target_location_index, change_dest, move_in_loop = coll_moves_scheduler(empty_space, initial_space, n, Row, move_distance, move_group, num_aod, move_in_qubits, move_out_qubits,
+        empty_space, parallel_move_groups, num_movement_stage, cir_qubit_idle_time, cir_fidelity_atom_transfer, list_transfer_duration, list_movement_duration, target_location_index, change_dest, move_in_loop, count, loop_num = coll_moves_scheduler(empty_space, initial_space, n, Row, move_distance, move_group, num_aod, move_in_qubits, move_out_qubits,
         qubits_not_in_storage, cir_qubit_idle_time, cir_fidelity_atom_transfer, list_transfer_duration,
-        list_movement_duration, num_movement_stage, location_index, target_location_index, location_size)
+        list_movement_duration, num_movement_stage, location_index, target_location_index, location_size, method, count, loop_num)
 
         ###################################################################################################################
         # trivial task reduction
@@ -267,11 +269,11 @@ def mvqc(cz_blocks, Row, n, storage_flag, d, num_aod, location_size=2):
             target_location_index = copy.deepcopy(location_index)
             list_gates.appendleft(new_mg)
             list_gates.appendleft(mg)
-            print("task split")
+            # print("task split")
             continue
 
 
-        print("one stage finished")
+        # print("one stage finished")
 
         # parallel_move_groups.sort(reverse = True, key = len)
         # print("move steps", len(parallel_move_groups))
@@ -333,4 +335,4 @@ def mvqc(cz_blocks, Row, n, storage_flag, d, num_aod, location_size=2):
     # print("cir_fidelity_atom_transfer", cir_fidelity_atom_transfer)
     # print("cir_fidelity_coherence", cir_fidelity_coherence)
     # print("coherence_time", Coherence_Time)
-    return sum(list_transfer_duration), sum(list_movement_duration), cir_fidelity, cir_fidelity_1q_gate, cir_fidelity_2q_gate, cir_fidelity_2q_gate_for_idle, cir_fidelity_atom_transfer, cir_fidelity_coherence, num_movement_stage
+    return sum(list_transfer_duration), sum(list_movement_duration), cir_fidelity, cir_fidelity_1q_gate, cir_fidelity_2q_gate, cir_fidelity_2q_gate_for_idle, cir_fidelity_atom_transfer, cir_fidelity_coherence, num_movement_stage, count, loop_num

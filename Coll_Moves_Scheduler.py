@@ -1,5 +1,47 @@
 import networkx as nx
 import copy
+from collections import defaultdict
+
+def count_paths_and_loops_deg2(G: nx.DiGraph, count=None):
+    if count is None:
+        count = defaultdict(int)
+    elif not isinstance(count, defaultdict):
+        count = defaultdict(int, count)
+
+    visited = set()
+
+    def traverse_chain(start):
+        path = [start]
+        cur = start
+        while True:
+            succs = list(G.successors(cur))
+            if len(succs) != 1:  # 无后继或分叉 -> 结束
+                break
+            nxt = succs[0]
+            if nxt in path:  # 成环
+                cycle_len = len(path) - path.index(nxt)
+                count[cycle_len] += 1
+                visited.update(path)
+                return
+            if nxt in visited:
+                break
+            path.append(nxt)
+            cur = nxt
+        # 非环链
+        count[len(path) - 1] += 1
+        visited.update(path)
+
+    # 先从所有 indegree = 0 的节点出发（非环起点）
+    for node in G.nodes:
+        if node not in visited and G.in_degree(node) == 0:
+            traverse_chain(node)
+
+    # 处理剩下的环
+    for node in G.nodes:
+        if node not in visited:
+            traverse_chain(node)
+
+    return count
 
 Fidelity_Atom_Transfer = 0.999
 MUS_PER_FRM = 8
@@ -134,6 +176,30 @@ def find_transfer_loc_2qubit(empty_space, initial_space, move, extra_move, Row, 
                     loc = (npos_x, npos_y, index_set.pop())
                     loc2 = (npos_x, npos_y, index_set.pop())
                     return loc, loc2
+    for r in range(20 * Row):
+        for i in range(min(r + 1, Row)):
+            j = r - i
+            for a in [-1, 1]:
+                for b in [-1, 1]:
+            # print("i, j", i, j)
+                    npos_x = pos_x + a * i
+                    npos_y = pos_y + b * j
+                    if npos_x >= 0 and npos_x < Row and npos_y >= 0 and npos_y < Row and len(empty_space[(npos_x, npos_y)]) < location_size-1:
+                        if len(initial_space[(npos_x, npos_y)]) < location_size-1:
+                            index_set = set(range(location_size))
+                            for q in initial_space[(npos_x, npos_y)]:
+                                index_set.discard(location_index[q])
+                            for q in empty_space[(npos_x, npos_y)]:
+                                index_set.discard(target_location_index[q])
+                            for m in extra_move:
+                                if m[2][0] == npos_x and m[2][1] == npos_y:
+                                    index_set.discard(m[2][2])
+                            if len(index_set)<2:
+                                continue
+                            loc = (npos_x, npos_y, index_set.pop())
+                            loc2 = (npos_x, npos_y, index_set.pop())
+                            return loc, loc2            
+    
     return move[1], move[2]
 
 def find_transfer_loc_1qubit(empty_space, initial_space, move, extra_move, Row, location_size, location_index, target_location_index):
@@ -241,7 +307,9 @@ def compare_if_split(new_pos, move, parallel_move_groups, move_distance, left_mo
     return (cost_split<=cost_not_split)
 
 
-def coll_moves_scheduler(empty_space, initial_space, n, Row, move_distance, move_group, num_aod, move_in_qubits, move_out_qubits, qubits_not_in_storage, cir_qubit_idle_time, cir_fidelity_atom_transfer, list_transfer_duration, list_movement_duration, num_movement_stage, location_index, target_location_index, location_size=2):
+def coll_moves_scheduler(empty_space, initial_space, n, Row, move_distance, move_group, num_aod, move_in_qubits, move_out_qubits, 
+                         qubits_not_in_storage, cir_qubit_idle_time, cir_fidelity_atom_transfer, list_transfer_duration, list_movement_duration, 
+                         num_movement_stage, location_index, target_location_index, location_size, method, count, loop_num):
     def get_distance(move):
         # return conflict_graph.nodes[move]['move_distance']
         return move_distance[move]
@@ -271,7 +339,11 @@ def coll_moves_scheduler(empty_space, initial_space, n, Row, move_distance, move
                 if move[2] == other_move[1]:
                     dependency_graph.add_edge(other_move, move)
 
+    count = count_paths_and_loops_deg2(dependency_graph, count)
+    # print(count)
+
     loops = list(nx.simple_cycles(dependency_graph))
+    loop_num += len(loops)
 
     # print("graph",dependency_graph.edges())
     # for k in initial_space.keys():
@@ -284,16 +356,17 @@ def coll_moves_scheduler(empty_space, initial_space, n, Row, move_distance, move
 
     ###################################################################################
     # trivial task split
-    # for l in loops:
-    #     print("loop", l)
-    #     max_dist = 0
-    #     for m in l:
-    #         if get_distance(m) > max_dist:
-    #             max_dist = get_distance(m)
-    #             move = m
-    #     move_in_loop.append(move)
-    # if len(move_in_loop) != 0:
-    #     return empty_space, parallel_move_groups, num_movement_stage, cir_qubit_idle_time, cir_fidelity_atom_transfer, list_transfer_duration, list_movement_duration, target_location_index, change_dest, move_in_loop
+    if not ((method == 'change_dest') or (method == 'change_dest+move_split')):
+        for l in loops:
+            # print("loop", l)
+            max_dist = 0
+            for m in l:
+                if get_distance(m) > max_dist:
+                    max_dist = get_distance(m)
+                    move = m
+            move_in_loop.append(move)
+        if len(move_in_loop) != 0:
+            return empty_space, parallel_move_groups, num_movement_stage, cir_qubit_idle_time, cir_fidelity_atom_transfer, list_transfer_duration, list_movement_duration, target_location_index, change_dest, move_in_loop, count, loop_num
     ####################################################################################
     # 将loop中distance最大的move的目标位置改为其他位置
     # for l in loops:
@@ -331,52 +404,54 @@ def coll_moves_scheduler(empty_space, initial_space, n, Row, move_distance, move
 
     ####################################################################################
     # 将loop中distance最大的move两个qubit一起移到其他位置
-    for l in loops:
-        print("loop", l)
-        max_dist = 0
-        for m in l:
-            if get_distance(m) > max_dist:
-                max_dist = get_distance(m)
-                move = m
-        print(move)
-        q = move[0]
-        src = move[1]
-        dest = move[2]
-        q_list = copy.deepcopy(empty_space[(dest[0], dest[1])])
-        if len(empty_space[(dest[0], dest[1])])==2:
-            q_list.remove(q)
-            q2 = q_list[0]
-            loc, loc2 = find_transfer_loc_2qubit(empty_space, initial_space, move, extra_move, Row, location_size, location_index, target_location_index)
-            new_move = (q, src, loc)
-            new_move2 = (q2, (dest[0], dest[1], (dest[2]+1)%2), loc2)
-            target_location_index[q] = loc[2]
-            target_location_index[q2] = loc2[2]
-            # print(empty_space[(dest[0], dest[1])])
-            empty_space[(dest[0], dest[1])].remove(q)
-            empty_space[(dest[0], dest[1])].remove(q2)
-            empty_space[(loc[0], loc[1])].append(q)
-            empty_space[(loc2[0], loc2[1])].append(q2)
-            change_dest[q] = (loc[0], loc[1])
-            change_dest[q2] = (loc2[0], loc2[1])
-            move_distance[new_move] = abs((loc[0] - src[0]) * X_SEP + (loc[2] - src[2]) * SITE_SEP) + abs((loc[1] - src[1]) * Y_SEP)
-            move_distance[new_move2] = abs((loc2[0] - dest[0]) * X_SEP + (loc2[2] - dest[2] - 1) % 2 * SITE_SEP) + abs((loc2[1] - dest[1]) * Y_SEP)
-            dependency_graph.add_node(new_move)
-            dependency_graph.add_node(new_move2)
-            for suc in dependency_graph.successors(move):
-                dependency_graph.add_edge(new_move, suc)
-            dependency_graph.remove_node(move)
-        else:
-            loc= find_transfer_loc_1qubit(empty_space, initial_space, move, extra_move, Row, location_size, location_index, target_location_index)
-            new_move = (q, src, loc)
-            target_location_index[q] = loc[2]
-            empty_space[(dest[0], dest[1])].remove(q)
-            empty_space[(loc[0], loc[1])].append(q)
-            change_dest[q] = (loc[0], loc[1])
-            move_distance[new_move] = abs((loc[0] - src[0]) * X_SEP + (loc[2] - src[2]) * SITE_SEP) + abs((loc[1] - src[1]) * Y_SEP)
-            dependency_graph.add_node(new_move)
-            for suc in dependency_graph.successors(move):
-                dependency_graph.add_edge(new_move, suc)
-            dependency_graph.remove_node(move)
+    if (method == 'change_dest') or (method == 'change_dest+move_split'):
+        for l in loops:
+            # print("loop", l)
+            max_dist = 0
+            for m in l:
+                if get_distance(m) > max_dist:
+                    max_dist = get_distance(m)
+                    move = m
+            print(move)
+            q = move[0]
+            src = move[1]
+            dest = move[2]
+            q_list = copy.deepcopy(empty_space[(dest[0], dest[1])])
+            if len(empty_space[(dest[0], dest[1])])==2:
+                q_list.remove(q)
+                q2 = q_list[0]
+                loc, loc2 = find_transfer_loc_2qubit(empty_space, initial_space, move, extra_move, Row, location_size, location_index, target_location_index)
+                new_move = (q, src, loc)
+                new_move2 = (q2, (dest[0], dest[1], (dest[2]+1)%2), loc2)
+                target_location_index[q] = loc[2]
+                target_location_index[q2] = loc2[2]
+                # print(empty_space[(dest[0], dest[1])])
+                empty_space[(dest[0], dest[1])].remove(q)
+                empty_space[(dest[0], dest[1])].remove(q2)
+                empty_space[(loc[0], loc[1])].append(q)
+                empty_space[(loc2[0], loc2[1])].append(q2)
+                change_dest[q] = (loc[0], loc[1])
+                change_dest[q2] = (loc2[0], loc2[1])
+                # print("change_dest", change_dest)
+                move_distance[new_move] = abs((loc[0] - src[0]) * X_SEP + (loc[2] - src[2]) * SITE_SEP) + abs((loc[1] - src[1]) * Y_SEP)
+                move_distance[new_move2] = abs((loc2[0] - dest[0]) * X_SEP + (loc2[2] - dest[2] - 1) % 2 * SITE_SEP) + abs((loc2[1] - dest[1]) * Y_SEP)
+                dependency_graph.add_node(new_move)
+                dependency_graph.add_node(new_move2)
+                for suc in dependency_graph.successors(move):
+                    dependency_graph.add_edge(new_move, suc)
+                dependency_graph.remove_node(move)
+            else:
+                loc= find_transfer_loc_1qubit(empty_space, initial_space, move, extra_move, Row, location_size, location_index, target_location_index)
+                new_move = (q, src, loc)
+                target_location_index[q] = loc[2]
+                empty_space[(dest[0], dest[1])].remove(q)
+                empty_space[(loc[0], loc[1])].append(q)
+                change_dest[q] = (loc[0], loc[1])
+                move_distance[new_move] = abs((loc[0] - src[0]) * X_SEP + (loc[2] - src[2]) * SITE_SEP) + abs((loc[1] - src[1]) * Y_SEP)
+                dependency_graph.add_node(new_move)
+                for suc in dependency_graph.successors(move):
+                    dependency_graph.add_edge(new_move, suc)
+                dependency_graph.remove_node(move)
     ####################################################################################
 
 
@@ -385,7 +460,8 @@ def coll_moves_scheduler(empty_space, initial_space, n, Row, move_distance, move
 
     for move in dependency_graph.nodes():
         if dependency_graph.in_degree(move) == 0:
-            ready_moves.append(move)
+            if move not in ready_moves:
+                ready_moves.append(move)
 
     ready_moves.sort(key = get_distance)
 
@@ -393,101 +469,107 @@ def coll_moves_scheduler(empty_space, initial_space, n, Row, move_distance, move
         compatible_index[m[0]] = 1
     ########################################################################################
     # basic
-    while len(ready_moves) > 0:
-        move = ready_moves[0]
-        ready_moves.remove(move)
-        # 把它的depend move也加入到pool中
-        for succ in dependency_graph.successors(move):
-            ready_moves.append(succ)
-        ready_moves.sort(key = get_distance)
-        flag = False
-        release_index = len(parallel_move_groups)
-        if dependency_graph.in_degree(move) == 0:
-            release_index = 0
-        for i in range(len(parallel_move_groups)):
-            pg = parallel_move_groups[i]
-            if release_index > i:
-                for pre_move in dependency_graph.predecessors(move):
-                    if pre_move in pg:
-                        if move in extra_move:
-                            release_index = max(i, compatible_index[move[0]])
-                        else:
-                            release_index = i
-                        break
-            if release_index > i:
-                continue
-            if not check_movelist_conflict(pg, move):
-                parallel_move_groups[i].append(move)
-                if move in extra_move:
-                    compatible_index[move[0]] = i+1
-                flag = True
-                break
+    if not ((method == 'move_split') or (method == 'change_dest+move_split')):
+        while len(ready_moves) > 0:
+            move = ready_moves[0]
+            ready_moves.remove(move)
+            # 把它的depend move也加入到pool中
+            for succ in dependency_graph.successors(move):
+                ready_moves.append(succ)
+            ready_moves.sort(key = get_distance)
+            flag = False
+            release_index = len(parallel_move_groups)
+            if dependency_graph.in_degree(move) == 0:
+                release_index = 0
+            for i in range(len(parallel_move_groups)):
+                pg = parallel_move_groups[i]
+                if release_index > i:
+                    for pre_move in dependency_graph.predecessors(move):
+                        if pre_move in pg:
+                            if move in extra_move:
+                                release_index = max(i, compatible_index[move[0]])
+                            else:
+                                release_index = i
+                            break
+                if release_index > i:
+                    continue
+                if not check_movelist_conflict(pg, move):
+                    parallel_move_groups[i].append(move)
+                    if move in extra_move:
+                        compatible_index[move[0]] = i+1
+                    flag = True
+                    break
 
-        if not flag:
-            parallel_move_groups.append([move])
-            if move in extra_move:
-                compatible_index[move[0]] = len(parallel_move_groups) + 1
+            if not flag:
+                parallel_move_groups.append([move])
+                if move in extra_move:
+                    compatible_index[move[0]] = len(parallel_move_groups) + 1
     ########################################################################################
 
     ########################################################################################
     # greedily 拆分 move
-    # left_move_num = dependency_graph.number_of_nodes()
-    # while len(ready_moves) > 0:
-    #     move = ready_moves[0]
-    #     ready_moves.remove(move)
-    #     left_move_num-=1
-    #     # 把它的depend move也加入到pool中
-    #     for succ in dependency_graph.successors(move):
-    #         ready_moves.append(succ)
-    #     ready_moves.sort(key = get_distance)
-    #     flag = False
-    #     release_index = len(parallel_move_groups)
-    #     if dependency_graph.in_degree(move) == 0:
-    #         release_index = 0
-    #     for i in range(len(parallel_move_groups)):
-    #         pg = parallel_move_groups[i]
-    #         if release_index > i:
-    #             for pre_move in dependency_graph.predecessors(move):
-    #                 if pre_move in pg:
-    #                     if move in extra_move:
-    #                         release_index = max(i, compatible_index[move[0]])
-    #                     else:
-    #                         release_index = i
-    #                     break
-    #         if release_index > i:
-    #             continue
-    #         if not check_movelist_conflict(pg, move):
-    #             parallel_move_groups[i].append(move)
-    #             if move in extra_move:
-    #                 compatible_index[move[0]] = i+1
-    #             flag = True
-    #             break
-    #     if not flag:
-    #         # print("try to split", move, release_index, parallel_move_groups)
-    #         new_pos = split_move(empty_space, initial_space, move, parallel_move_groups, extra_move, Row, location_size, location_index, target_location_index, release_index)
-    #         if new_pos is not None:
-    #             print("split move", move, new_pos)
-    #             if True:
-    #             # if compare_if_split(new_pos, move, parallel_move_groups, move_distance, left_move_num):
-    #                 swth_index, new_move_list = new_pos
-    #                 for suc in dependency_graph.successors(move):
-    #                     dependency_graph.add_edge(new_move_list[-1], suc)
-    #                 dependency_graph.remove_node(move)
-    #                 if move in extra_move:
-    #                     compatible_index[move[0]] = swth_index[0]+1
-    #                 for i, m in enumerate(new_move_list):
-    #                     move_distance[m] = abs((m[2][0]-m[1][0])*X_SEP+(m[2][2]-m[1][2])*SITE_SEP)+abs(m[2][1]-m[1][1])*Y_SEP
-    #                     parallel_move_groups[swth_index[i]].append(m)
-    #                     extra_move.append(m)
-    #                 # for m in dependency_graph.nodes():
-    #                 #     if m[2] == new_move_list[-1][1]:
-    #                 #         dependency_graph.add_edge(new_move_list[-1], m)
-    #                 flag = True
+    else:
+        left_move_num = dependency_graph.number_of_nodes()
+        while len(ready_moves) > 0:
+            move = ready_moves[0]
+            ready_moves.remove(move)
+            left_move_num-=1
+            # 把它的depend move也加入到pool中
+            for succ in dependency_graph.successors(move):
+                if succ not in ready_moves:
+                    ready_moves.append(succ)
+            ready_moves.sort(key = get_distance)
+            flag = False
+            release_index = len(parallel_move_groups)
+            if dependency_graph.in_degree(move) == 0:
+                release_index = 0
+            for i in range(len(parallel_move_groups)):
+                pg = parallel_move_groups[i]
+                if release_index > i:
+                    for pre_move in dependency_graph.predecessors(move):
+                        if pre_move in pg:
+                            if move in extra_move:
+                                release_index = max(i, compatible_index[move[0]])
+                            else:
+                                release_index = i
+                            break
+                if release_index > i:
+                    continue
+                if not check_movelist_conflict(pg, move):
+                    parallel_move_groups[i].append(move)
+                    if move in extra_move:
+                        compatible_index[move[0]] = i+1
+                    flag = True
+                    break
+            if not flag:
+                # print("try to split", move, release_index, parallel_move_groups)
+                new_pos = split_move(empty_space, initial_space, move, parallel_move_groups, extra_move, Row, location_size, location_index, target_location_index, release_index)
+                if new_pos is not None:
+                    print("split move", move, new_pos)
+                    if True:
+                    # if compare_if_split(new_pos, move, parallel_move_groups, move_distance, left_move_num):
+                        swth_index, new_move_list = new_pos
+                        dep_move = move
+                        for suc in dependency_graph.successors(move):
+                            dependency_graph.add_edge(new_move_list[-1], suc)
+                            dep_move = suc
+                        if dep_move != move:
+                            dependency_graph.remove_edge(move, suc)
+                        if move in extra_move:
+                            compatible_index[move[0]] = swth_index[0]+1
+                        for i, m in enumerate(new_move_list):
+                            move_distance[m] = abs((m[2][0]-m[1][0])*X_SEP+(m[2][2]-m[1][2])*SITE_SEP)+abs(m[2][1]-m[1][1])*Y_SEP
+                            parallel_move_groups[swth_index[i]].append(m)
+                            extra_move.append(m)
+                        # for m in dependency_graph.nodes():
+                        #     if m[2] == new_move_list[-1][1]:
+                        #         dependency_graph.add_edge(new_move_list[-1], m)
+                        flag = True
 
-    #     if not flag:
-    #         parallel_move_groups.append([move])
-    #         if move in extra_move:
-    #             compatible_index[move[0]] = len(parallel_move_groups) + 1
+            if not flag:
+                parallel_move_groups.append([move])
+                if move in extra_move:
+                    compatible_index[move[0]] = len(parallel_move_groups) + 1
     ########################################################################################
 
     sum = 0
@@ -528,4 +610,4 @@ def coll_moves_scheduler(empty_space, initial_space, n, Row, move_distance, move
                 cir_qubit_idle_time[i] += move_duration
         list_transfer_duration.append(2 * MUS_PER_FRM)
         list_movement_duration.append(move_duration)
-    return empty_space, parallel_move_groups, num_movement_stage, cir_qubit_idle_time, cir_fidelity_atom_transfer, list_transfer_duration, list_movement_duration, target_location_index, change_dest, move_in_loop
+    return empty_space, parallel_move_groups, num_movement_stage, cir_qubit_idle_time, cir_fidelity_atom_transfer, list_transfer_duration, list_movement_duration, target_location_index, change_dest, move_in_loop, count, loop_num

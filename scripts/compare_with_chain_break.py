@@ -55,12 +55,14 @@ I_List = range(10)
 
 index = random.choice(I_List)
 type = 'rand'
-type = 'regular'
+# type = 'regular'
 d = 1
-method_list = ['base', 'move_split', 'change_dest', 'change_dest+move_split']
+method_list = ['base', 'move_split', 'change_dest', 'change_dest+move_split', "break_chains", "break_chains+change_dest", "break_chains+change_dest+move_split"]
+# method_list = ["break_chains", "break_chains+change_dest", "break_chains+change_dest+move_split"]
 for method in method_list:
-    # for P in P_List:
-    for degree in range(1,11):
+    print(method)
+    for P in P_List:
+    # for degree in range(1,11):
     # for P in [0.5]:
         mvqc_transfer_duration_list = []
         mvqc_move_duration_list = [] 
@@ -80,8 +82,8 @@ for method in method_list:
         for n in N_Qubit_List:
             Row = math.ceil(math.sqrt(n))
 
-            # path = f"benchmarks/qaoa/{type}/q{n}_p{P}/i{index}.txt"
-            path = f"benchmarks/qaoa/{type}/q{n}_regular{degree}/i{index}.txt"
+            path = f"benchmarks/qaoa/{type}/q{n}_p{P}/i{index}.txt"
+            # path = f"benchmarks/qaoa/{type}/q{n}_regular{degree}/i{index}.txt"
             # path = f"benchmarks/qsim/{type}/q{n}_10_p{P}/i{index}.txt"
             try:
                 with open(path, "r") as fid:
@@ -99,12 +101,12 @@ for method in method_list:
             # mvqc_start_time = time.time()
             mvqc_transfer_duration, mvqc_move_duration, mvqc_cir_fidelity, mvqc_cir_fidelity_1q_gate, mvqc_cir_fidelity_2q_gate, mvqc_cir_fidelity_2q_gate_for_idle, mvqc_cir_fidelity_atom_transfer, mvqc_cir_fidelity_coherence, mvqc_nstage, count, loop_num = mvqc([gates], Row, n, False, d, 1, method)
             
-            sorted(count.items())
+            # sorted(count.items())
             # print("loop num", loop_num)
             # print("chains length", count)
             count = dict(sorted(count.items()))
             threshold_length = find_threshold_key(count, 0.7)
-            print(threshold_length)
+            # print(threshold_length)
             threshold_length_list.append(threshold_length)
             mvqc_transfer_duration_list.append(mvqc_transfer_duration)
             mvqc_move_duration_list.append(mvqc_move_duration)
@@ -131,10 +133,10 @@ for method in method_list:
             # enola_cir_fidelity_atom_transfer_list.append(enola_cir_fidelity_atom_transfer)
             # enola_cir_fidelity_coherence_list.append(enola_cir_fidelity_coherence)  
             # enola_nstage_list.append(enola_nstage)
-        # with open(f"data/qaoa_{type}_no_storage{P}_compare_{method}.txt", 'w') as file:
-        with open(f"data/qaoa_{type}{degree}_no_storage_compare_{method}.txt", 'w') as file:
+        with open(f"data/qaoa_{type}_no_storage{P}_compare_{method}.txt", 'w') as file:
+        # with open(f"data/qaoa_{type}{degree}_no_storage_compare_{method}.txt", 'w') as file:
             # file.write(str(N_Qubit_List) + '\n')
-            file.write(str(q_list) + '\n')        
+            # file.write(str(q_list) + '\n')        
             file.write(str([x + y for x, y in zip(mvqc_transfer_duration_list, mvqc_move_duration_list)]) + '\n') 
             file.write(str(loop_num_list) + '\n') 
             file.write(str(chain_length_list) + '\n') 

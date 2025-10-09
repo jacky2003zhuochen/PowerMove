@@ -15,6 +15,20 @@ from qiskit.qasm3 import loads
 Distance_List = [5, 10, 15, 20, 25]
 I_List = range(10)
 
+def find_threshold_key(d, threshold=0.7):
+    sorted_items = sorted(d.items()) 
+    
+    total = sum(v for _, v in sorted_items)
+    target = threshold * total
+    
+    cumulative = 0
+    for key, value in sorted_items:
+        if cumulative > target:
+            return key
+        cumulative += value
+
+    return sorted_items[-1][0] if sorted_items else None
+
 # mvqc_transfer_duration_list = []
 # mvqc_move_duration_list = [] 
 # mvqc_cir_fidelity_list = [] 
@@ -45,7 +59,8 @@ I_List = range(10)
 # no_storage_cir_fidelity_coherence_list = []
 # no_storage_nstage_list = []
 
-method_list = ['base', "move_split", "change_dest", "change_dest+move_split"]
+# method_list = ['base', "move_split", "change_dest", "change_dest+move_split"]
+method_list = ['base', 'move_split', 'change_dest', 'change_dest+move_split', "break_chains", "break_chains+change_dest", "break_chains+change_dest+move_split"]
 for method in method_list:
     no_storage_transfer_duration_list = [] 
     no_storage_move_duration_list = [] 
@@ -57,20 +72,21 @@ for method in method_list:
     no_storage_cir_fidelity_coherence_list = []
     no_storage_nstage_list = []
     chain_length_list = []
+    threshold_length_list = []
     loop_num_list = []
 
     # for d in Distance_List:
     d=1
-    for n in [6, 15, 30, 40, 50, 70, 80]:
-    # for n in [6, 10, 20, 30, 40, 50, 60, 80, 100]:
+    # for n in [6, 15, 30, 40, 50, 70, 80]:
+    for n in [6, 10, 20, 30, 40, 50, 60, 80, 100]:
     # for n in [10, 20, 30, 50]:
         index = random.choice(I_List)
         Row = math.ceil(math.sqrt(n))
 
         # circ = QuantumCircuit.from_qasm_file(f"benchmarks/vqe/vqe_n{n}.qasm")
-        with open(f"benchmarks/qft/qftn{n}.qasm", "r") as f:
+        # with open(f"benchmarks/qft/qftn{n}.qasm", "r") as f:
         # with open(f"benchmarks/bv/new_bv_n{n}.qasm", "r") as f:
-        # with open(f"benchmarks/rca/rca_n{n}.qasm", "r") as f:
+        with open(f"benchmarks/rca/rca_n{n}.qasm", "r") as f:
         # with open(f"benchmarks/vqe/vqe_n{n}.qasm", "r") as f:
             qasm_code = f.read()
         circ = loads(qasm_code)
@@ -104,8 +120,11 @@ for method in method_list:
         no_storage_transfer_duration, no_storage_move_duration, no_storage_cir_fidelity, no_storage_cir_fidelity_1q_gate, no_storage_cir_fidelity_2q_gate, no_storage_cir_fidelity_2q_gate_for_idle, no_storage_cir_fidelity_atom_transfer, no_storage_cir_fidelity_coherence, no_storage_nstage, count, loop_num = mvqc(cz_blocks, Row, n, False, d, 1, method)
 
         sorted(count.items())
-        print(loop_num)
-        print(count)
+        # print(loop_num)
+        # print(count)
+        count = dict(sorted(count.items()))
+        threshold_length = find_threshold_key(count, 0.7)
+        threshold_length_list.append(threshold_length)
         no_storage_transfer_duration_list.append(no_storage_transfer_duration)
         no_storage_move_duration_list.append(no_storage_move_duration)
         no_storage_cir_fidelity_list.append(no_storage_cir_fidelity)
@@ -118,7 +137,7 @@ for method in method_list:
         chain_length_list.append(count)
         loop_num_list.append(loop_num)
 
-    with open(f"data/new_compare_qft_{method}.txt", 'w') as file:
+    with open(f"data/compare_rca_{method}.txt", 'w') as file:
         # file.write(str(Distance_List) + '\n')
         # file.write(str(mvqc_transfer_duration_list) + '\n') 
         # file.write(str(mvqc_move_duration_list) + '\n') 
@@ -144,6 +163,7 @@ for method in method_list:
         file.write(str([x + y for x, y in zip(no_storage_transfer_duration_list, no_storage_move_duration_list)]) + '\n') 
         file.write(str(loop_num_list) + '\n')  
         file.write(str(chain_length_list) + '\n')  
+        file.write(str(threshold_length_list) + '\n')
         file.write(str(no_storage_transfer_duration_list) + '\n')  
         file.write(str(no_storage_move_duration_list) + '\n')  
         file.write(str(no_storage_cir_fidelity_list) + '\n')  

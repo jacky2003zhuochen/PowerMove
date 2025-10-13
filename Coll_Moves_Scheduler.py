@@ -255,7 +255,9 @@ def check_movelist_conflict(move_list, new_move):
             return True
     return False
 
-def split_move(empty_space, initial_space, move, parallel_move_groups, extra_move, Row, location_size, location_index, target_location_index, release_index):
+def split_move(empty_space, initial_space, move, parallel_move_groups, extra_move, Row, location_size, location_index, target_location_index, release_index, iter_num):
+    if iter_num==0:
+        return None
     pos_x = move[1][0]
     pos_y = move[1][1]
     dest_x = move[2][0]
@@ -296,11 +298,15 @@ def split_move(empty_space, initial_space, move, parallel_move_groups, extra_mov
     # for access_pos in comp_group.keys():
     #     for i in comp_group[access_pos]:
     #         if (len(parallel_move_groups)-i > 2):
-    #             switcher = split_move(empty_space, initial_space, (move[0], access_pos, move[2]), parallel_move_groups[(i+1):], extra_move, Row, location_size, location_index, target_location_index, release_index)
+    #             switcher = split_move(empty_space, initial_space, (move[0], access_pos, move[2]), parallel_move_groups[(i+1):], extra_move, Row, location_size, location_index, target_location_index, release_index, iter_num-1)
     #             if switcher is not None:
     #                 swth_index, swth_pos = switcher
+    #                 for idx in range(len(swth_index)):
+    #                     swth_index[idx] = swth_index[idx] + i + 1
     #                 swth_index.append(i)
-    #                 swth_pos.append((move[0], move[1], loc))
+    #                 swth_pos.append((move[0], move[1], access_pos))
+    #                 # swth_index.insert(0,i)
+    #                 # swth_pos.insert(0,(move[0], move[1], loc))
     #                 return (swth_index, swth_pos)
     return None
 
@@ -318,7 +324,7 @@ def compare_if_split(new_pos, move, parallel_move_groups, move_distance, left_mo
         move_distance[m] = abs((m[2][0]-m[1][0])*X_SEP+(m[2][2]-m[1][2])*SITE_SEP)+abs(m[2][1]-m[1][1])*Y_SEP
         aod.sort(reverse = True, key = get_distance)
         cost_split += 200*(get_distance(aod[0])/110)**(1/2)
-    cost_not_split += (200*(get_distance(move)/110)**(1/2) + 2 * MUS_PER_FRM) / ((left_move_num//(len(parallel_move_groups)+1))+1)
+    cost_not_split += (200*(get_distance(move)/110)**(1/2) + 2 * MUS_PER_FRM ) / ((left_move_num//(len(parallel_move_groups)+1))+1)
     return (cost_split<=cost_not_split)
 
 def find_chains_deg1(G: nx.DiGraph, min_length):
@@ -405,7 +411,7 @@ def update_dest(move, empty_space, initial_space, extra_move, Row, location_size
 
 def coll_moves_scheduler(empty_space, initial_space, n, Row, move_distance, move_group, num_aod, move_in_qubits, move_out_qubits, 
                          qubits_not_in_storage, cir_qubit_idle_time, cir_fidelity_atom_transfer, list_transfer_duration, list_movement_duration, 
-                         num_movement_stage, location_index, target_location_index, location_size, method, count_sum, loop_num):
+                         num_movement_stage, location_index, target_location_index, location_size, method, count_sum, loop_num, split_succ, split_fail):
     def get_distance(move):
         # return conflict_graph.nodes[move]['move_distance']
         return move_distance[move]
@@ -451,8 +457,8 @@ def coll_moves_scheduler(empty_space, initial_space, n, Row, move_distance, move
 
     ###################################################################################
     # trivial task split
-    # if method in ['base', 'move_split', "break_chains"]:
-    if 'change_dest' not in method:
+    if method in ['base', 'move_split', "break_chains"]:
+    # if 'change_dest' not in method:
         for l in loops:
             # print("loop", l)
             max_dist = 0
@@ -471,7 +477,7 @@ def coll_moves_scheduler(empty_space, initial_space, n, Row, move_distance, move
                         pop_idx_list.append(i)
             for i in pop_idx_list[::-1]:
                 move_in_loop.pop(i)
-            return empty_space, parallel_move_groups, num_movement_stage, cir_qubit_idle_time, cir_fidelity_atom_transfer, list_transfer_duration, list_movement_duration, target_location_index, change_dest, move_in_loop, count_sum, loop_num
+            return empty_space, parallel_move_groups, num_movement_stage, cir_qubit_idle_time, cir_fidelity_atom_transfer, list_transfer_duration, list_movement_duration, target_location_index, change_dest, move_in_loop, count_sum, loop_num, split_succ, split_fail
     ####################################################################################
     # 将loop中distance最大的move的目标位置改为其他位置
     # for l in loops:
@@ -523,7 +529,7 @@ def coll_moves_scheduler(empty_space, initial_space, n, Row, move_distance, move
 
     count = count_paths_and_loops_deg2(dependency_graph)
     sorted(count.items())
-    threshold_length = find_threshold_key(count, 0.8)
+    threshold_length = find_threshold_key(count, 0.7)
     break_chain_move = []
     chains = find_chains_deg1(dependency_graph, max(3,threshold_length))
     for c in chains:
@@ -544,7 +550,7 @@ def coll_moves_scheduler(empty_space, initial_space, n, Row, move_distance, move
         if method == "break_chains":
             if len(break_chain_move) != 0:
                 # print("move group", move_in_loop)
-                return empty_space, parallel_move_groups, num_movement_stage, cir_qubit_idle_time, cir_fidelity_atom_transfer, list_transfer_duration, list_movement_duration, target_location_index, change_dest, break_chain_move, count_sum, loop_num
+                return empty_space, parallel_move_groups, num_movement_stage, cir_qubit_idle_time, cir_fidelity_atom_transfer, list_transfer_duration, list_movement_duration, target_location_index, change_dest, break_chain_move, count_sum, loop_num, split_succ, split_fail
         # if method == "break_chains+change_dest" or method == "break_chains+change_dest+move_split":
         else:
             for move in break_chain_move:
@@ -566,8 +572,8 @@ def coll_moves_scheduler(empty_space, initial_space, n, Row, move_distance, move
         compatible_index[m[0]] = 1
     ########################################################################################
     # basic
-    if 'move_split' not in method:
-    # if method in ['base', 'change_dest', "break_chains", "break_chains+change_dest"]:
+    # if 'move_split' not in method:
+    if method in ['base', 'change_dest', "break_chains", "break_chains+change_dest"]:
         while len(ready_moves) > 0:
             move = ready_moves[0]
             ready_moves.remove(move)
@@ -641,10 +647,11 @@ def coll_moves_scheduler(empty_space, initial_space, n, Row, move_distance, move
                     break
             if not flag:
                 # print("try to split", move, release_index, parallel_move_groups)
-                new_pos = split_move(empty_space, initial_space, move, parallel_move_groups, extra_move, Row, location_size, location_index, target_location_index, release_index)
+                new_pos = split_move(empty_space, initial_space, move, parallel_move_groups, extra_move, Row, location_size, location_index, target_location_index, release_index, iter_num=2)
                 if new_pos is not None:
                     # print("split move", move, new_pos)
                     if True:
+                        split_succ += 1
                     # if compare_if_split(new_pos, move, parallel_move_groups, move_distance, left_move_num):
                         swth_index, new_move_list = new_pos
                         dep_move = move
@@ -663,6 +670,8 @@ def coll_moves_scheduler(empty_space, initial_space, n, Row, move_distance, move
                         #     if m[2] == new_move_list[-1][1]:
                         #         dependency_graph.add_edge(new_move_list[-1], m)
                         flag = True
+                else:
+                    split_fail += 1
 
             if not flag:
                 parallel_move_groups.append([move])
@@ -708,4 +717,4 @@ def coll_moves_scheduler(empty_space, initial_space, n, Row, move_distance, move
                 cir_qubit_idle_time[i] += move_duration
         list_transfer_duration.append(2 * MUS_PER_FRM)
         list_movement_duration.append(move_duration)
-    return empty_space, parallel_move_groups, num_movement_stage, cir_qubit_idle_time, cir_fidelity_atom_transfer, list_transfer_duration, list_movement_duration, target_location_index, change_dest, move_in_loop, count_sum, loop_num
+    return empty_space, parallel_move_groups, num_movement_stage, cir_qubit_idle_time, cir_fidelity_atom_transfer, list_transfer_duration, list_movement_duration, target_location_index, change_dest, move_in_loop, count_sum, loop_num, split_succ, split_fail

@@ -70,6 +70,7 @@ bench_list = ['ghz','qft', 'cat', 'ising', 'wstate', ]#'bwt', #'vqe_uccsd']
 N_Bench_list = {'adder':[10,28,64,118,433], 'bv':[14,19,30,70,140,280], 'bwt':[21,37,57,97,177], 'cc':[12,32,64,151,301], 'dnn':[8,16,33,51], 'ghz':[23,40,78,127,255], 'knn':[25,31,41,67,129,341], 'multiplier':[15,45,75,350,400], 'qft':[4,18,29,63,160,320], 'cat':[4,22,35,65,130,260], 'ising':[10,26,34,42,66,98,420], 'qugan':[39, 71, 111, 395], 'square_root':[18,45,60], 'swap_test':[25,41,83,115,361], 'vqe_uccsd':[4,6,8,28], 'wstate':[3,27,36,76,118,380]}
 # method_list = ['base', "move_split", "change_dest", "change_dest+move_split"]
 # method_list = ['base', 'move_split', 'change_dest', 'change_dest+move_split', "break_chains", "break_chains+change_dest", "break_chains+change_dest+move_split"]
+# method_list = ['base', 'move_split', 'change_dest', 'change_dest+move_split', "break_chains", "break_chains+change_dest", "break_chains+change_dest+move_split"]
 method_list = ['move_split_double',  'change_dest+move_split_double', "break_chains+change_dest+move_split_double"]
 # method_list = ["break_chains", "break_chains+change_dest", "break_chains+change_dest+move_split"]
 for method in method_list:
@@ -106,7 +107,7 @@ for method in method_list:
                 circ = QuantumCircuit.from_qasm_file(f"benchmarks\\QASMBench-master\\{benchm}\\{benchm}_n{n}\\{benchm}_n{n}_transpiled.qasm")
                 # circ_path = Path("benchmarks") / "QASMBench-master" / benchm / f"{benchm}_n{n}" / f"{benchm}_n{n}_transpiled.qasm"
                 # circ = QuantumCircuit.from_qasm_file(circ_path)
-            except:
+            except FileNotFoundError:
                 # circ = QuantumCircuit.from_qasm_file(f"benchmarks\QASMBench-master\ising_n{n}\ising_n{n}.qasm")
                 # continue
                 circ = QuantumCircuit.from_qasm_file(f"benchmarks\\QASMBench-master\\{benchm}\\{benchm}_n{n}\\{benchm}_n{n}.qasm")
@@ -146,7 +147,7 @@ for method in method_list:
             # enola_cir_fidelity_coherence_list.append(enola_cir_fidelity_coherence)  
             # enola_nstage_list.append(enola_nstage)
             try:
-                no_storage_transfer_duration, no_storage_move_duration, no_storage_cir_fidelity, no_storage_cir_fidelity_1q_gate, no_storage_cir_fidelity_2q_gate, no_storage_cir_fidelity_2q_gate_for_idle, no_storage_cir_fidelity_atom_transfer, no_storage_cir_fidelity_coherence, no_storage_nstage, count, loop_num = mvqc(cz_blocks, Row, n, False, d, 1, method)
+                no_storage_transfer_duration, no_storage_move_duration, no_storage_cir_fidelity, no_storage_cir_fidelity_1q_gate, no_storage_cir_fidelity_2q_gate, no_storage_cir_fidelity_2q_gate_for_idle, no_storage_cir_fidelity_atom_transfer, no_storage_cir_fidelity_coherence, no_storage_nstage, count, loop_num, split_succ, split_fail = mvqc(cz_blocks, Row, n, False, d, 1, method)
             except:
                 print("split", benchm)
                 break
@@ -154,6 +155,7 @@ for method in method_list:
             sorted(count.items())
             # print(loop_num)
             # print(count)
+            print(split_succ, split_fail)
             count = dict(sorted(count.items()))
             threshold_length = find_threshold_key(count, 0.7)
             threshold_length_list.append(threshold_length)

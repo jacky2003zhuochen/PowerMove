@@ -111,7 +111,7 @@ for benchm in bench_list:
     plt.ylabel("duration list")
     # plt.text(1, -0.2, f"at q={N_Qubit_List[-1]}, improve {int(1000*(base1/opt1-1))/10}%", ha='center', va='top')
     # plt.text(1, -0.4, f"at q={N_Qubit_List[-2]}, improve {int(1000*(base2/opt2-1))/10}%", ha='center', va='top')
-    plt.savefig(f"fig/compare_{benchm}_dyn2.png")
+    plt.savefig(f"fig/compare_{benchm}_double.png")
     # plt.savefig(f"fig/compare_regular{degree}.png")
     # plt.savefig(f"fig/compare_rand{p}.png")
     print(base1,base2,opt1,opt2)

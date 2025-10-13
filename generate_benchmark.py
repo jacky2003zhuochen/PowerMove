@@ -109,20 +109,20 @@ def genQiskitRCA(program_qubit_num):
 
     return qiskit_circuit
 
-qubit_size_list = [6, 15, 30, 40, 50, 70, 80]
-# qubit_size_list = [6, 10, 20, 30, 40, 50, 60, 80, 100]
+# qubit_size_list = [6, 15, 30, 40, 50, 70, 80]
+qubit_size_list = [6, 10, 20, 30, 40, 50, 60, 80, 100, 150, 250]
 for n in qubit_size_list:
-    circuit = genQiskitQFT(n)
-    qasm_code = dumps(circuit)
-    with open(f"benchmarks/qft/qftn{n}.qasm", "w") as f:
-        f.write(qasm_code)
+    # circuit = genQiskitQFT(n)
+    # qasm_code = dumps(circuit)
+    # with open(f"benchmarks/qft/qftn{n}.qasm", "w") as f:
+    #     f.write(qasm_code)
 
-    # circuit = genQiskitBV(n)
-    # qasm_code = dumps(circuit)
-    # with open(f"benchmarks/bv/new_bv_n{n}.qasm", "w") as f:
-    #     f.write(qasm_code)
+    circuit = genQiskitBV(n)
+    qasm_code = dumps(circuit)
+    with open(f"benchmarks/bv/new_bv_n{n}.qasm", "w") as f:
+        f.write(qasm_code)
         
-    # circuit = genQiskitRCA(n)
-    # qasm_code = dumps(circuit)
-    # with open(f"benchmarks/rca/rca_n{n}.qasm", "w") as f:
-    #     f.write(qasm_code)
+    circuit = genQiskitRCA(n)
+    qasm_code = dumps(circuit)
+    with open(f"benchmarks/rca/rca_n{n}.qasm", "w") as f:
+        f.write(qasm_code)

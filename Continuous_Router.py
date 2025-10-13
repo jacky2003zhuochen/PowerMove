@@ -142,7 +142,7 @@ def continuous_router(mg, pos, empty_space, move_out_qubits, move_in_qubits, sto
                             rq_moved_pos[rq] = (npos_x, npos_y)
                             pos_find_flag = True
                             # if False:
-                            if (method in ['change_dest', 'change_dest+move_split', "break_chains", "break_chains+change_dest", "break_chains+change_dest+move_split"]) and (len(init_space[(npos_x, npos_y)])==1):
+                            if (method != 'base') and (len(init_space[(npos_x, npos_y)])==1):
                                 target_location_index[rq] = (location_index[init_space[(npos_x,npos_y)][0]]+1)%2
                             else:
                                 target_location_index[rq] = 0     

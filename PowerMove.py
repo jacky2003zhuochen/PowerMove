@@ -89,7 +89,7 @@ def sabre_initial_layout(cz_blocks, N, dimension):
         idx += 1
     return qubit_mapping
 
-def mvqc(cz_blocks, Row, n, storage_flag, d, num_aod, method, location_size=2):
+def mvqc(cz_blocks, Row, n, storage_flag, d, num_aod, method, cost_para, para1, para2, location_size=2):
     N_Block = d
 
     if not storage_flag:
@@ -169,6 +169,8 @@ def mvqc(cz_blocks, Row, n, storage_flag, d, num_aod, method, location_size=2):
     else:
         qubits_not_in_storage = [q for q in range(n)]
 
+    if method == "powermove":
+        location_size = 4
     # storage_occ = {}
 
     # for i in range(Row):
@@ -210,6 +212,7 @@ def mvqc(cz_blocks, Row, n, storage_flag, d, num_aod, method, location_size=2):
 
         location_index = copy.deepcopy(target_location_index)
         initial_space = copy.deepcopy(empty_space)
+
         move_group, empty_space, rq_moved_pos, qmg, storage_in_move, target_location_index = continuous_router(mg, pos, empty_space, move_out_qubits, move_in_qubits, storage_flag, Row, location_index, target_location_index, location_size, method)
 
         move_distance = {}
@@ -242,7 +245,8 @@ def mvqc(cz_blocks, Row, n, storage_flag, d, num_aod, method, location_size=2):
         # coll moves
         empty_space, parallel_move_groups, num_movement_stage, cir_qubit_idle_time, cir_fidelity_atom_transfer, list_transfer_duration, list_movement_duration, target_location_index, change_dest, move_in_loop, count, loop_num, split_succ, split_fail = coll_moves_scheduler(empty_space, initial_space, n, Row, move_distance, move_group, num_aod, move_in_qubits, move_out_qubits,
         qubits_not_in_storage, cir_qubit_idle_time, cir_fidelity_atom_transfer, list_transfer_duration,
-        list_movement_duration, num_movement_stage, location_index, target_location_index, location_size, method, count, loop_num, split_succ, split_fail)
+        list_movement_duration, num_movement_stage, location_index, target_location_index, location_size, 
+        method, count, loop_num, split_succ, split_fail, cost_para, para1, para2)
 
         ###################################################################################################################
         # trivial task reduction

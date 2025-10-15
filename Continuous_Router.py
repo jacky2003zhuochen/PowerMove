@@ -1,5 +1,20 @@
 import copy 
 
+def find_loc_idx(location_index, target_location_index, init_space, empty_space, pos_dest, location_size):
+    index_set = set(range(location_size))
+    index_set2 = set(range(location_size))
+    for q in init_space[pos_dest]:
+        index_set.discard(location_index[q])
+    for q in empty_space[pos_dest]:
+        index_set.discard(target_location_index[q])
+        index_set2.discard(target_location_index[q])
+    if not index_set:
+        return index_set2.pop()
+    else:
+        return index_set.pop()
+
+
+
 def continuous_router(mg, pos, empty_space, move_out_qubits, move_in_qubits, storage_flag, Row, location_index, target_location_index, location_size, method):
 
     def get_pos(q):
@@ -142,8 +157,8 @@ def continuous_router(mg, pos, empty_space, move_out_qubits, move_in_qubits, sto
                             rq_moved_pos[rq] = (npos_x, npos_y)
                             pos_find_flag = True
                             # if False:
-                            if (method != 'base') and (len(init_space[(npos_x, npos_y)])==1):
-                                target_location_index[rq] = (location_index[init_space[(npos_x,npos_y)][0]]+1)%2
+                            if (method != 'base') and (len(init_space[(npos_x, npos_y)])<location_size):
+                                target_location_index[rq] = find_loc_idx(location_index, target_location_index, init_space, empty_space, (npos_x,npos_y), location_size) # (location_index[init_space[(npos_x,npos_y)][0]]+1)%2
                             else:
                                 target_location_index[rq] = 0     
                             break
@@ -163,7 +178,7 @@ def continuous_router(mg, pos, empty_space, move_out_qubits, move_in_qubits, sto
     # formulate qmg (q0, q1) into move_group (q, pos)
     for qm in qmg:
         if pos[qm[1]] in static_pos.keys() and qm[1] == static_pos[pos[qm[1]]]:
-            target_location_index[qm[0]] = (location_index[qm[1]] + 1) % location_size
+            target_location_index[qm[0]] = find_loc_idx(location_index, target_location_index, init_space, empty_space, pos[qm[1]], location_size) # (location_index[qm[1]] + 1) % location_size
             move_group.append((
                 qm[0], 
                 (pos[qm[0]][0], pos[qm[0]][1], location_index[qm[0]]), 
@@ -171,7 +186,7 @@ def continuous_router(mg, pos, empty_space, move_out_qubits, move_in_qubits, sto
             ))
             empty_space[pos[qm[1]]].append(qm[0])
         else:
-            target_location_index[qm[0]] = (location_index[qm[1]] + 1) % location_size
+            target_location_index[qm[0]] = find_loc_idx(location_index, target_location_index, init_space, empty_space, rq_moved_pos[qm[1]], location_size) # (location_index[qm[1]] + 1) % location_size
             move_group.append((
                 qm[0], 
                 (pos[qm[0]][0], pos[qm[0]][1], location_index[qm[0]]), 

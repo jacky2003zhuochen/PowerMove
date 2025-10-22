@@ -270,10 +270,9 @@ def mvqc(cz_blocks, Row, n, storage_flag, d, num_aod, method, cost_para, para1, 
                     if (q_list[0],q_list[1]) in mg:
                         mg.remove((q_list[0],q_list[1]))
                     else:
-                        if q_list == [76, 38]:
-                            print(initial_space[(m[1][0], m[1][1])])
-                            print(mg)
-
+                        # if q_list == [76, 38]:
+                        #     print(initial_space[(m[1][0], m[1][1])])
+                        #     print(mg)
                         mg.remove((q_list[1],q_list[0]))
             empty_space = copy.deepcopy(initial_space)
             target_location_index = copy.deepcopy(location_index)

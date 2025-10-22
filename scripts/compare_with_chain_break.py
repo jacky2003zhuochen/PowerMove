@@ -48,25 +48,31 @@ def find_threshold_key(d, threshold=0.7):
 
 
 # N_Qubit_List = [5, 10, 20, 30 ,50, 100]
-N_Qubit_List = [6, 10, 20, 30, 40, 50, 60, 80, 100]
-N_Qubit_List = [30, 40, 50, 60, 80, 100]
+N_Qubit_List = [10, 20, 30 ,50, 100]
+# N_Qubit_List = [6, 10, 20, 30, 40, 50, 60, 80, 100]
+# N_Qubit_List = [30, 40, 50, 60, 80, 100]
 P_List = [0.1, 0.2, 0.3, 0.4, 0.5]
 # P_List = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]
 I_List = range(10)
 
 index = random.choice(I_List)
-# type = 'rand'
-type = 'regular'
+type = 'rand'
+# type = 'regular'
 d = 1
-method_list = ['break_chains+change_dest+move_split']
+# method_list = ['break_chains+change_dest+move_split']
 # method_list = ['base', 'move_split', 'change_dest', 'change_dest+move_split', "break_chains", "break_chains+change_dest", "break_chains+change_dest+move_split"]
-# method_list = ["break_chains", "break_chains+change_dest", "break_chains+change_dest+move_split"]
+method_list = ["break_chains+change_dest+move_split"]
+# method_list = ['base']
 for method in method_list:
     print(method)
-    # for P in P_List:
-    for degree in range(1,11):
+    for P in P_List:
+    # for degree in range(1,11):
     # for P in [0.5]:
-        for thre in [1,2,3,4,5,7,10,20,50]:
+        # for thre in [1,2,3,4,5,7,10,20,80]:
+        for thre in [0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1]:
+        # for thre in [0.2,0.3,0.4]:
+            # for min_len in [2,3,4,5]:
+            # print(min_len)
             mvqc_transfer_duration_list = []
             mvqc_move_duration_list = [] 
             mvqc_cir_fidelity_list = [] 
@@ -85,8 +91,8 @@ for method in method_list:
             for n in N_Qubit_List:
                 Row = math.ceil(math.sqrt(n))
 
-                # path = f"benchmarks/qaoa/{type}/q{n}_p{P}/i{index}.txt"
-                path = f"benchmarks/qaoa/{type}/q{n}_regular{degree}/i{index}.txt"
+                path = f"benchmarks/qaoa/{type}/q{n}_p{P}/i{index}.txt"
+                # path = f"benchmarks/qaoa/{type}/q{n}_regular{degree}/i{index}.txt"
                 # path = f"benchmarks/qsim/{type}/q{n}_10_p{P}/i{index}.txt"
                 try:
                     with open(path, "r") as fid:
@@ -96,14 +102,10 @@ for method in method_list:
                     continue
                 with open(path, "r") as fid:
                     gates = eval(fid.read())
-                # print(gates)
-                # circuit = pauli_string_to_qasm(gates)
-                # print(circuit)
-                # cir = QuantumCircuit.from_qasm_str(circuit)
-                # print(cir)
+
                 # mvqc_start_time = time.time()
                 # mvqc_transfer_duration, mvqc_move_duration, mvqc_cir_fidelity, mvqc_cir_fidelity_1q_gate, mvqc_cir_fidelity_2q_gate, mvqc_cir_fidelity_2q_gate_for_idle, mvqc_cir_fidelity_atom_transfer, mvqc_cir_fidelity_coherence, mvqc_nstage, count, loop_num = mvqc([gates], Row, n, False, d, 1, method)
-                mvqc_transfer_duration, mvqc_move_duration, mvqc_cir_fidelity, mvqc_cir_fidelity_1q_gate, mvqc_cir_fidelity_2q_gate, mvqc_cir_fidelity_2q_gate_for_idle, mvqc_cir_fidelity_atom_transfer, mvqc_cir_fidelity_coherence, mvqc_nstage, count, loop_num, split_succ, split_fail = mvqc([gates], Row, n, False, d, 1, method, cost_para=thre, para1=0, para2=0)
+                mvqc_transfer_duration, mvqc_move_duration, mvqc_cir_fidelity, mvqc_cir_fidelity_1q_gate, mvqc_cir_fidelity_2q_gate, mvqc_cir_fidelity_2q_gate_for_idle, mvqc_cir_fidelity_atom_transfer, mvqc_cir_fidelity_coherence, mvqc_nstage, count, loop_num, split_succ, split_fail = mvqc([gates], Row, n, False, d, 1, method, cost_para=100, para1=thre, para2=0)
                 
                 # sorted(count.items())
                 # print("loop num", loop_num)
@@ -123,24 +125,12 @@ for method in method_list:
                 mvqc_nstage_list.append(mvqc_nstage)
                 chain_length_list.append(count)
                 loop_num_list.append(loop_num)
-
-                # enola_start_time = time.time()
-                # enolar_transfer_duration, enola_move_duration, enola_cir_fidelity, enola_cir_fidelity_1q_gate, enola_cir_fidelity_2q_gate, enola_cir_fidelity_2q_gate_for_idle, enola_cir_fidelity_atom_transfer, enola_cir_fidelity_coherence, enola_nstage = enola([gates], Row, n, d)
-                # enola_runtime.append(time.time() - enola_start_time)
-                
-                # enola_transfer_duration_list.append(enolar_transfer_duration)
-                # enola_move_duration_list.append(enola_move_duration)
-                # enola_cir_fidelity_list.append(enola_cir_fidelity)
-                # enola_cir_fidelity_1q_gate_list.append(enola_cir_fidelity_1q_gate)
-                # enola_cir_fidelity_2q_gate_list.append(enola_cir_fidelity_2q_gate)
-                # enola_cir_fidelity_2q_gate_for_idle_list.append(enola_cir_fidelity_2q_gate_for_idle)
-                # enola_cir_fidelity_atom_transfer_list.append(enola_cir_fidelity_atom_transfer)
-                # enola_cir_fidelity_coherence_list.append(enola_cir_fidelity_coherence)  
-                # enola_nstage_list.append(enola_nstage)
-            # with open(f"data/qaoa_{type}_no_storage{P}_compare_{method}_test.txt", 'w') as file:
-            with open(f"data/qaoa_{type}{degree}_no_storage_compare_{method}_{thre}_sim.txt", 'w') as file:
+            # with open(f"data/qaoa_{type}_no_storage{P}_compare_{method}.txt", 'w') as file:
+            with open(f"data/qaoa_{type}_no_storage{P}_compare_{method}_sim6_{thre}.txt", 'w') as file:
+            # with open(f"data/qaoa_{type}{degree}_no_storage_compare_{method}_sim5_{thre}.txt", 'w') as file:
+            # with open(f"data/qaoa_{type}{degree}_no_storage_compare_double_{method}_{min_len}tune{thre}.txt", 'w') as file:
                 # file.write(str(N_Qubit_List) + '\n')
-                file.write(str(q_list) + '\n')        
+                # file.write(str(q_list) + '\n')        
                 file.write(str([x + y for x, y in zip(mvqc_transfer_duration_list, mvqc_move_duration_list)]) + '\n') 
                 file.write(str(loop_num_list) + '\n') 
                 file.write(str(chain_length_list) + '\n') 

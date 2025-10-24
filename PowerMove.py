@@ -210,7 +210,8 @@ def mvqc(cz_blocks, Row, n, storage_flag, d, num_aod, method, cost_para, para1, 
         else:
             cir_fidelity_2q_gate_for_idle *= pow(fidelity_2q_gate_for_idle, (len(qubits_not_in_storage) - 2*len(mg)) * (N_Block ** 2))
 
-        location_index = copy.deepcopy(target_location_index)
+        # location_index = copy.deepcopy(target_location_index)
+        location_index = target_location_index.copy()
         initial_space = copy.deepcopy(empty_space)
 
         move_group, empty_space, rq_moved_pos, qmg, storage_in_move, target_location_index = continuous_router(mg, pos, empty_space, move_out_qubits, move_in_qubits, storage_flag, Row, location_index, target_location_index, location_size, method)
@@ -275,7 +276,7 @@ def mvqc(cz_blocks, Row, n, storage_flag, d, num_aod, method, cost_para, para1, 
                         #     print(mg)
                         mg.remove((q_list[1],q_list[0]))
             empty_space = copy.deepcopy(initial_space)
-            target_location_index = copy.deepcopy(location_index)
+            target_location_index = location_index.copy()
             list_gates.appendleft(new_mg)
             list_gates.appendleft(mg)
             # print("task split")

@@ -77,7 +77,7 @@ for method in method_list:
     #     cost_para2 = regular_cost_para2[degree]
     # for P in [0.5]:
         # for thre in [0.1, 0.3, 0.4,0.5, 0.6,0.7, 0.8, 0.9, 1, 2, 5, 10, 30]:
-        for thre in [0.2,0.4,0.5,0.6,0.7,0.8,0.9,1]:
+        for thre in [0.2,1,30]:
         # for thre in [0.75,0.85,0.95,0.65,1.2,1.5,2.5,3,4,7,15]:
             # for min_len in [2,3,4,5]:
             print(thre)
@@ -110,10 +110,12 @@ for method in method_list:
                 with open(path, "r") as fid:
                     gates = eval(fid.read())
 
-                # mvqc_start_time = time.time()
+                mvqc_start_time = time.time()
                 # mvqc_transfer_duration, mvqc_move_duration, mvqc_cir_fidelity, mvqc_cir_fidelity_1q_gate, mvqc_cir_fidelity_2q_gate, mvqc_cir_fidelity_2q_gate_for_idle, mvqc_cir_fidelity_atom_transfer, mvqc_cir_fidelity_coherence, mvqc_nstage, count, loop_num = mvqc([gates], Row, n, False, d, 1, method)
                 mvqc_transfer_duration, mvqc_move_duration, mvqc_cir_fidelity, mvqc_cir_fidelity_1q_gate, mvqc_cir_fidelity_2q_gate, mvqc_cir_fidelity_2q_gate_for_idle, mvqc_cir_fidelity_atom_transfer, mvqc_cir_fidelity_coherence, mvqc_nstage, count, loop_num, split_succ, split_fail = mvqc([gates], Row, n, False, d, 1, method, cost_para, para1=thre, para2=cost_para2)
-                
+                mvqc_end_time = time.time()
+                mvqc_runtime.append(mvqc_end_time - mvqc_start_time)
+
                 # sorted(count.items())
                 # print("loop num", loop_num)
                 # print("chains length", count)
@@ -133,7 +135,7 @@ for method in method_list:
                 chain_length_list.append(count)
                 loop_num_list.append(loop_num)
             # with open(f"data/qaoa_{type}_no_storage{P}_compare_{method}.txt", 'w') as file:
-            with open(f"data/qaoa_{type}_no_storage{P}_compare_{method}_double_half_sim_{thre}.txt", 'w') as file:
+            with open(f"data/qaoa_{type}_no_storage{P}_compare_{method}_double_half_sim_{thre}_3.txt", 'w') as file:
             # with open(f"data/qaoa_{type}{degree}_no_storage_compare_{method}_sim5_{thre}.txt", 'w') as file:
             # with open(f"data/qaoa_{type}{degree}_no_storage_compare_{method}_double_half_sim6_{thre}.txt", 'w') as file:
                 # file.write(str(N_Qubit_List) + '\n')

@@ -6,41 +6,41 @@ import json
 # method_list = ['base', "move_split", "change_dest", "change_dest+move_split"]
 # method_list = ['base', 'move_split', 'change_dest', 'change_dest+move_split', "break_chains", "break_chains+change_dest", "break_chains+change_dest+move_split"]
 # method_list = ['base', 'move_split',  'change_dest+move_split', "break_chains+change_dest+move_split", 'move_split_double',  'change_dest+move_split_double', "break_chains+change_dest+move_split_double"]
-method_list = ['base', 'move_split',  'change_dest+move_split', "break_chains+change_dest+move_split", 'move_split_triple',  'change_dest+move_split_triple', "break_chains+change_dest+move_split_triple"]
+# method_list = ["break_chains+change_dest+move_split", "break_chains+change_dest+move_split_triple", "break_chains+change_dest+move_split_double"]
+method_list = ['base',"break_chains+change_dest+move_split_sort_rand", "break_chains+change_dest+move_split_sim6_double_1", 'break_chains+change_dest+move_split_double_half_sim_']
 # method_list = ['base', "break_chains", "break_chains+change_dest", "break_chains+change_dest+move_split", "double_break_chains", "double_break_chains+change_dest", "double_break_chains+change_dest+move_split"]
 # method_list = ['base', "dynamic_min3_ratio07_break_chains", "dynamic_min3_ratio07_break_chains+change_dest", "dynamic_min3_ratio07_break_chains+change_dest+move_split", "dynamic_break_chains", "dynamic_break_chains+change_dest", "dynamic_break_chains+change_dest+move_split"]
 # method_list = ['base', "break_chains+change_dest+move_split", "break_chains+change_dest+move_split_sim22", "break_chains+change_dest+move_split_sim2"]
 # method_list = ['base', 'move_split', 'change_dest', 'change_dest+move_split', "break_chains", "break_chains+change_dest", "break_chains+change_dest+move_split"]
 
-# method = 'break_chains+change_dest+move_split'
+method = 'break_chains+change_dest+move_split'
+
 N_Qubit_Dic = {}
 P_List = [0.1, 0.2, 0.3, 0.4, 0.5]
-# N_Qubit_List = [5, 10, 20, 30 ,50, 100]
-# N_Qubit_List = [6, 10, 20, 30, 40, 50, 60, 80, 100]
-N_Qubit_List = [10, 30, 50, 70, 100, 150, 200]
-# N_Qubit_List = [6, 15, 30, 40, 50, 70, 80]
-# N_Qubit_List = [6, 10, 20, 30, 40, 50, 60, 80, 100, 150, 250] #rand
-# N_Qubit_List = [10, 26, 34, 42, 66, 98, 420] #Ising
-# N_Qubit_List = [4, 22, 35, 65, 130, 260] #cat
-# N_Qubit_List = [17]
-duration_list = {}
+# N_Qubit_List = [10, 30, 50, 70, 100, 150, 200]
+N_Qubit_List = [10, 20, 30 ,50, 100] #rand
 base1 = 0
 base2 = 0
 opt1 = 0
 opt2 = 0
-
+cost_para_list2 = {'ghz':5, 'cat':3, 'ising':1.2, 'wstate':1, 'qft':0.9}
+duration_list = {}
 bench_list = ['ghz', 'cat', 'ising', 'wstate', 'qft']#'bwt', #'vqe_uccsd']
 # bench_list = ['hs']
 # # bench_list = ['adder', 'bv', 'cc', 'dnn', 'ghz', 'knn', 'multiplier', 'qft', 'cat', 'ising', 'qugan', 'square_root', 'swap_test', 'wstate', 'rca', ]
 N_Bench_list = {'hs':[10, 30, 50, 70, 100, 150, 200],'adder':[10,28,64,118,433], 'bv':[14,19,30,70,140,280], 'bwt':[21,37,57,97,177], 'cc':[12,32,64,151,301], 'dnn':[8,16,33,51], 'ghz':[23,40,78,127,255], 'knn':[25,31,41,67,129,341], 'multiplier':[15,45,75,350,400], 'qft':[4,18,29,63,160,320], 'cat':[4,22,35,65,130,260], 'ising':[10,26,34,42,66,98,420], 'qugan':[39, 71, 111, 395], 'square_root':[18,45,60], 'swap_test':[25,41,83,115,361], 'vqe_uccsd':[4,6,8,28], 'wstate':[3,27,36,76,118,380], 'rca':[6, 10, 20, 30, 40, 50, 60, 80, 100, 150, 250]}
-
+tune_para_dic = {}
 for benchm in bench_list:
     duration_list = {}
     N_Qubit_List = N_Bench_list[benchm]
     for method in method_list:
-        # duration_list[method] = []
-    # for degree in range(1,11):
-    # for p in P_List:
+        duration_list[method] = []
+        if method == 'break_chains+change_dest+move_split_double_half_sim_':
+            thre  = cost_para_list2[benchm]
+            method = method + str(thre)
+# for degree in range(1,11):
+# for p in P_List:
+    # duration_list = {}
         # opt1 = 0
         # opt2 = 0
         # path = f"data/compare_{benchm}_break_chains+change_dest+move_split.txt"
@@ -53,19 +53,17 @@ for benchm in bench_list:
         # for min_len in [2,3,4,5]:
         # for thre in [0,0.1,0.15,0.2,0.25,0.3,0.35,0.4,0.5,0.6]:
         # for thre in [0.1,0.2,0.3,0.35,0.4,0.5,0.6,0.7,0.8,0.9]:
-        # for thre in [0.2,0.3,0.4]:
-        # for thre in [0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1]:
-        # for thre in [0.5, 0.9, 1, 1.1, 1.2, 1.4, 1.7, 2, 3, 5, 2.5,7,10,15,20,25]:
-        # for thre in [0.1,0.2,0.5,0.7,1,2,3,5,7,10,20]:
-        # for thre in [-9,-8,-7,-6,-5,-4,-3, -1]:
-            # path = f"data/qaoa_regular{degree}_no_storage_compare_{method}_sim6_{thre}.txt"
-            # path = f"data/qaoa_rand_no_storage{p}_compare_{method}_sim5_{thre}.txt"
-            # path = f"data/compare_{benchm}_{method}_sim_{thre}.txt"
+    # for thre in [0.1, 0.3, 0.5, 0.7, 0.8, 0.2,0.25,0.35,0.4,0.45,0.55,0.6, 0.65, 0.75, 0.85, 30]:
+    # for thre in [0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1]:
+    # for thre in [0.2,0.4,0.5,0.6,0.7,0.8,0.9,1]:
+    # for thre in [0.1, 0.3, 0.5, 0.7, 0.8, 0.9, 1, 2, 3, 5, 10, 30]:
+    # for thre in [1,0.5, 0.7, 0.8, 0.9, 0.85,0.95,0.6,1.2,1.5,2.5,3.5,4,6,8,2, 3, 5, 10]:
+    # for thre in [0.1, 0.3, 0.4,0.5, 0.6,0.7, 0.8, 0.9, 1, 2, 5, 10, 30]:
+    # for thre in [1,0.75,0.85,0.95,0.65,1.2,1.5,2.5,3,4,7,15,0.5, 0.6,0.7, 0.8, 0.9, 2, 5, 10]:
+        # path = f"data/qaoa_regular{degree}_no_storage_compare_{method}_double_half_sim_{thre}.txt"
+        # path = f"data/qaoa_rand_no_storage{p}_compare_{method}_double_half_sim_{thre}.txt"
+        # path = f"data/compare_{benchm}_{method}_double_half_sim_{thre}.txt"
         path = f"data/compare_{benchm}_{method}.txt"
-        # path = f"data/compare_{benchm}_{method}_{min_len}tune{thre}.txt"
-        # path = f"data/compare_{benchm}_break_chains+change_dest+move_split_sim_{thre}.txt"
-        # path = f"data/qaoa_regular{degree}_no_storage_compare_{method}_{min_len}tune{thre}.txt"
-        # path = f"data/qaoa_rand_no_storage{p}_compare_{method}_{thre}_sim2.txt"
         try:
             with open(path, "r", encoding="utf-8") as f:
                 # N_Qubit_Dic[method] = json.loads(f.readline().strip())
@@ -75,6 +73,7 @@ for benchm in bench_list:
                 # if len(duration_list[method]) == 0:
                 #     break
                 if method == 'base':
+                # if method == "break_chains+change_dest+move_split":
                     base1 = duration_list[method][-1]
                     base2 = duration_list[method][-2]
                     opt1 = duration_list[method][-1]
@@ -85,7 +84,7 @@ for benchm in bench_list:
         # if len(duration_list[method]) == 0:
         #     break
 
-        # if thre == 0.1:
+        # if thre == 1:
         #     min_val = duration_list[str(thre)][-1]
         #     min_idx = thre
         #     min_val_2 = duration_list[str(thre)][-2]
@@ -97,14 +96,18 @@ for benchm in bench_list:
         #     if duration_list[str(thre)][-2] <= min_val_2:
         #         min_val_2 = duration_list[str(thre)][-2]
         #         min_idx_2 = thre
-        # opt1 = min(opt1,duration_list[str(thre)][-1])
-        opt1 = min(opt1,duration_list[method][-1])
-        opt2 = min(opt2,duration_list[method][-2])
+        # opt1 = min(opt1,duration_list[method][-1])
+        # opt2 = min(opt2,duration_list[method][-2])
         # plt.plot(N_Qubit_Dic[method], duration_list[method], marker='o', label=f"{method}")
         # plt.plot(N_Qubit_Dic[str(thre)], duration_list[str(thre)], marker='o', label=f"{str(thre)}")
-        # plt.plot(N_Qubit_List[-2:], duration_list[method][-2:], marker='o', label=f"{method}")
-        plt.plot(N_Qubit_List, duration_list[method], marker='o', label=f"{method}")
-        # plt.plot(N_Qubit_List[-3:], duration_list[str(thre)][-3:], marker='o', label=f"{thre}")
+        if method == "break_chains+change_dest+move_split_sort_rand":
+            plt.plot(N_Qubit_List, duration_list[method], marker='o', label="move split")
+        elif method == "break_chains+change_dest+move_split_sim6_double_1":
+            plt.plot(N_Qubit_List, duration_list[method], marker='o', label="double split")
+        elif method == "base":
+            plt.plot(N_Qubit_List, duration_list[method], marker='o', label="baseline")
+        else:
+            plt.plot(N_Qubit_List, duration_list[method], marker='o', label=f"opt")
         # plt.plot(N_Qubit_List, duration_list[str(thre)], marker='o', label=f"{thre}")
     # plt.title(f"QAOA Regular{degree}")
 
@@ -114,6 +117,9 @@ for benchm in bench_list:
     #     ha='center', va='top', transform=plt.gca().transAxes)
     # plt.text(0.5, -0.20, f"at q={N_Qubit_List[-2]}, best para is {min_idx_2}, {min_val_2}",
     #         ha='center', va='top', transform=plt.gca().transAxes)
+    # tune_para_dic[benchm] = (min_idx, min_idx_2)
+    # tune_para_dic[p] = (min_idx, min_idx_2)
+    # tune_para_dic[degree] = (min_idx, min_idx_2)
     plt.text(0.5, -0.14, f"at q={N_Qubit_List[-1]}, improve {int(1000*(base1/opt1-1))/10}%",
         ha='center', va='top', transform=plt.gca().transAxes)
     plt.text(0.5, -0.20, f"at q={N_Qubit_List[-2]}, improve {int(1000*(base2/opt2-1))/10}%",
@@ -130,16 +136,17 @@ for benchm in bench_list:
     plt.ylabel("duration list")
     # plt.text(1, -0.2, f"at q={N_Qubit_List[-1]}, improve {int(1000*(base1/opt1-1))/10}%", ha='center', va='top')
     # plt.text(1, -0.4, f"at q={N_Qubit_List[-2]}, improve {int(1000*(base2/opt2-1))/10}%", ha='center', va='top')
-    plt.savefig(f"fig/compare_{benchm}_triple.png")
-    # plt.savefig(f"fig/compare_regular{degree}_sim6.png")
-    # plt.savefig(f"fig/compare_regular{degree}_double_break_chain_{min_len}tune.png")
-    # plt.savefig(f"fig/compare_rand{p}_sim5.png")
+    # plt.savefig(f"fig/compare_{benchm}_double_half_sim.png")
+    # plt.savefig(f"fig/compare_regular{degree}_sim6_double.png")
+    # plt.savefig(f"fig/compare_regular{degree}_double_half_sim.png")
+    plt.savefig(f"fig/compare_{benchm}_tune_half_split.png")
+    # plt.savefig(f"fig/compare_rand{p}_double_half_sim.png")
     # plt.savefig(f"fig/compare_random{p}_double_break_chain_{min_len}tune.png")
     # print(base1,base2,opt1,opt2)
     # print(f"at q={N_Qubit_List[-1]}, improve {int(1000*(base1/opt1-1))/10}%")
     # print(f"at q={N_Qubit_List[-2]}, improve {int(1000*(base2/opt2-1))/10}%")
     plt.clf()
 
-
+print(tune_para_dic)
     # plt.savefig("compare_move_duration.png")
     # plt.show()

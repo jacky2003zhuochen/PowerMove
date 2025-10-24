@@ -70,9 +70,9 @@ def length_ratio_dis_mix(v,w):
 # def compare_similar(m, L, thre, method=mag_angle_similarity):
 # def compare_similar(m, L, method=magnitude_weighted_cosine):
 # def compare_similar(m, L, method=normalized_euclidean1_similarity):
-# def compare_similar(m, L, method=normalized_euclidean2_similarity):
+def compare_similar(m, L, method=normalized_euclidean2_similarity):
 # def compare_similar(m, L, method=length_ratio_xy):
-def compare_similar(m, L, method=length_ratio_xy2):
+# def compare_similar(m, L, method=length_ratio_xy2):
 # def compare_similar(m, L, method=length_ratio_dis_mix):
 # def compare_similar(m, L, alpha, method=weighted_cosine):
     from itertools import combinations
@@ -397,7 +397,7 @@ def split_move(empty_space, initial_space, move, parallel_move_groups, extra_mov
         for i in comp_group[access_pos]:
             if (len(parallel_move_groups)-i > 2):
                 switcher = split_move(empty_space, initial_space, (move[0], access_pos, move[2]), parallel_move_groups[(i+1):], extra_move, Row, location_size, location_index, target_location_index, release_index, iter_num-1)
-                if not isinstance(switcher, dict):
+                if isinstance(switcher, tuple):
                     swth_index, swth_pos = switcher
                     for idx in range(len(swth_index)):
                         swth_index[idx] = swth_index[idx] + i + 1
@@ -422,7 +422,7 @@ def compare_if_split(new_pos, move, parallel_move_groups, move_distance, add_mov
     sim_list = []
     for i, m in enumerate(new_move_list):
         aod = copy.deepcopy(parallel_move_groups[swth_index[i]])
-        # sim_list.append(compare_similar(m,aod))
+        sim_list.append(compare_similar(m,aod))
         aod.sort(reverse = True, key = get_distance)
         cost_not_split += 200*(get_distance(aod[0])/110)**(1/2)
         aod.append(m)
@@ -467,29 +467,36 @@ def compare_if_half_split(new_pos, move, parallel_move_groups, move_distance, co
     
     # return True
     cost_not_split = 0
-    cost_half_split_list = []
+    cost_half_split_dic = {}
     sim_list = []
-    for loc, idx in new_pos.items():
-        cost_half_split = 0
-        aod = copy.deepcopy(parallel_move_groups[idx])
-        new_move1 = (move[0], move[1], loc)
-        new_move2 = (move[0], loc, move[2])
-        sim_list.append(compare_similar(new_move1,aod))
-        aod.append(new_move1)
-        move_distance[new_move1] = abs((new_move1[2][0]-new_move1[1][0])*X_SEP+(new_move1[2][2]-new_move1[1][2])*SITE_SEP)+abs(new_move1[2][1]-new_move1[1][1])*Y_SEP
-        aod.sort(reverse = True, key = get_distance)
-        cost_half_split += 200*(get_distance(aod[0])/110)**(1/2)
-        cost_half_split += (200*(get_distance(new_move2)/110)**(1/2) + 2 * MUS_PER_FRM ) * cost_para
-        cost_half_split_list.append(cost_half_split)
-    cost_half_split = min(cost_half_split_list)
-    idx = cost_half_split_list.index(cost_half_split)
+    for loc, idx_list in new_pos.items():
+        for idx in idx_list:
+            cost_half_split = 0
+            aod = copy.deepcopy(parallel_move_groups[idx])
+            new_move1 = (move[0], move[1], loc)
+            new_move2 = (move[0], loc, move[2])
+            aod.append(new_move1)
+            move_distance[new_move1] = abs((new_move1[2][0]-new_move1[1][0])*X_SEP+(new_move1[2][2]-new_move1[1][2])*SITE_SEP)+abs(new_move1[2][1]-new_move1[1][1])*Y_SEP
+            move_distance[new_move2] = abs((new_move2[2][0]-new_move2[1][0])*X_SEP+(new_move2[2][2]-new_move2[1][2])*SITE_SEP)+abs(new_move2[2][1]-new_move2[1][1])*Y_SEP
+            aod.sort(reverse = True, key = get_distance)
+            cost_half_split += 200*(get_distance(aod[0])/110)**(1/2)
+            cost_half_split += (200*(get_distance(new_move2)/110)**(1/2) + 2 * MUS_PER_FRM ) * para2
+            cost_half_split_dic[(loc,idx)] = cost_half_split
+    min_item = min(cost_half_split_dic.items(), key=lambda x: x[1])
+    loc, idx = min_item[0]
+    aod = copy.deepcopy(parallel_move_groups[idx])
+    new_move1 = (move[0], move[1], loc)
+    sim_list.append(compare_similar(new_move1,aod))
+    cost_half_split = min_item[1]
 
-    cost_not_split += (200*(get_distance(move)/110)**(1/2) + 2 * MUS_PER_FRM ) * cost_para
+    cost_not_split += (200*(get_distance(move)/110)**(1/2) + 2 * MUS_PER_FRM ) * para2
     cost_not_split += 200*(get_distance(aod[0])/110)**(1/2)
     if (cost_half_split<=cost_not_split):
-        # return True
+        # return new_pos[list(new_pos.keys())[idx]]
+        # return loc, idx
         if np.mean(np.array(sim_list)) < para1:
-            return new_pos[list(new_pos.keys())[idx]]
+            # return new_pos[list(new_pos.keys())[idx]]
+            return loc,idx
         else:
             return None
     return None
@@ -833,6 +840,14 @@ def coll_moves_scheduler(empty_space, initial_space, n, Row, move_distance, move
     ########################################################################################
     # greedily 拆分 move
     else:
+        confliction_graph = nx.DiGraph()
+        for move in dependency_graph.nodes():
+            confliction_graph.add_node(move)
+        for i, move in enumerate(dependency_graph.nodes()):
+            for j, other_move in enumerate(dependency_graph.nodes()):
+                if i != j:
+                    if check_conflict(move, other_move, 0) or check_conflict(move, other_move, 1):
+                        confliction_graph.add_edge(move, other_move)
         # left_move_num = dependency_graph.number_of_nodes()
         added_move_num = 0
         while len(ready_moves) > 0:
@@ -870,8 +885,8 @@ def coll_moves_scheduler(empty_space, initial_space, n, Row, move_distance, move
                     break
             if not flag:
                 # print("try to split", move, release_index, parallel_move_groups)
-                new_pos = split_move(empty_space, initial_space, move, parallel_move_groups, extra_move, Row, location_size, location_index, target_location_index, release_index, iter_num=4)
-                if not isinstance(new_pos, dict):
+                new_pos = split_move(empty_space, initial_space, move, parallel_move_groups, extra_move, Row, location_size, location_index, target_location_index, release_index, iter_num=2)
+                if isinstance(new_pos, tuple):
                     # print("split move", move, new_pos)
                     # if True:
                     if compare_if_split(new_pos, move, parallel_move_groups, move_distance, added_move_num, dependency_graph.number_of_nodes(), cost_para, para1, para2):
@@ -895,30 +910,34 @@ def coll_moves_scheduler(empty_space, initial_space, n, Row, move_distance, move
                         flag = True
                     else:
                         split_fail += 1
-                else:
-                    split_fail += 1
-                    # loc = compare_if_half_split(new_pos, move, parallel_move_groups, move_distance, cost_para, para1, para2)
-                    # if loc is not None:
-                    #     idx = new_pos[loc]
-                    #     if move in extra_move:
-                    #         compatible_index[move[0]] = idx+1
-                    #     split_succ += 1
-                    #     new_move1 = (move[0], move[1], loc)
-                    #     new_move2 = (move[0], loc, move[2])
-                    #     move_distance[new_move1] = abs((new_move1[2][0]-new_move1[1][0])*X_SEP+(new_move1[2][2]-new_move1[1][2])*SITE_SEP)+abs(new_move1[2][1]-new_move1[1][1])*Y_SEP
-                    #     move_distance[new_move2] = abs((new_move2[2][0]-new_move2[1][0])*X_SEP+(new_move2[2][2]-new_move2[1][2])*SITE_SEP)+abs(new_move2[2][1]-new_move2[1][1])*Y_SEP
-                    #     parallel_move_groups[idx].append(new_move1)
-                    #     extra_move.append(new_move1)
-                    #     parallel_move_groups.append([new_move2])
-                    #     dep_move = move
-                    #     for suc in dependency_graph.successors(move):
-                    #         dependency_graph.add_edge(new_move1, suc)
-                    #         dep_move = suc
-                    #     if dep_move != move:
-                    #         dependency_graph.remove_edge(move, suc)
-                    #     flag = True
-                    # else:
-                    #     split_fail += 1
+                elif isinstance(new_pos, dict):
+                    # split_fail += 1
+                    if len(new_pos) != 0:
+                        loc_idx = compare_if_half_split(new_pos, move, parallel_move_groups, move_distance, cost_para, para1, para2)
+                        if loc_idx is not None:
+                            idx = loc_idx[1]
+                            loc = loc_idx[0]
+                            if move in extra_move:
+                                compatible_index[move[0]] = idx+1
+                            split_succ += 1
+                            new_move1 = (move[0], move[1], loc)
+                            new_move2 = (move[0], loc, move[2])
+                            move_distance[new_move1] = abs((new_move1[2][0]-new_move1[1][0])*X_SEP+(new_move1[2][2]-new_move1[1][2])*SITE_SEP)+abs(new_move1[2][1]-new_move1[1][1])*Y_SEP
+                            move_distance[new_move2] = abs((new_move2[2][0]-new_move2[1][0])*X_SEP+(new_move2[2][2]-new_move2[1][2])*SITE_SEP)+abs(new_move2[2][1]-new_move2[1][1])*Y_SEP
+                            parallel_move_groups[idx].append(new_move1)
+                            extra_move.append(new_move1)
+                            parallel_move_groups.append([new_move2])
+                            dep_move = move
+                            for suc in dependency_graph.successors(move):
+                                dependency_graph.add_edge(new_move1, suc)
+                                dep_move = suc
+                            if dep_move != move:
+                                dependency_graph.remove_edge(move, suc)
+                            flag = True
+                        else:
+                            split_fail += 1
+                    else:
+                        split_fail += 1
 
             if not flag:
                 parallel_move_groups.append([move])

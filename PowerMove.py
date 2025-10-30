@@ -181,6 +181,8 @@ def mvqc(cz_blocks, Row, n, storage_flag, d, num_aod, method, cost_para, para1, 
     #{0: (2, 3), 1: (3, 1), 2: (0, 2), 3: (2, 1), 4: (1, 2), 5: (3, 2), 6: (2, 0), 7: (1, 3), 8: (3, 4), 9: (4, 1), 10: (0, 3), 11: (2, 2), 12: (4, 0), 13: (2, 4), 14: (3, 3), 15: (1, 1), 16: (4, 3), 17: (3, 0), 18: (0, 1), 19: (1, 4)}
     list_gates = deque(list_gates)
     split_succ, split_fail = 0, 0
+    pick_drop_orig_num, pick_drop_split_num = 0, 0
+    aod_sum = 0
     while len(list_gates)>0:
         mg = list_gates.popleft()
         cir_fidelity_2q_gate *= pow(Fidelity_2Q_Gate, len(mg))
@@ -244,10 +246,14 @@ def mvqc(cz_blocks, Row, n, storage_flag, d, num_aod, method, cost_para, para1, 
         #     if empty_space[pos[m[1]]].find(m[0]) == -1:
         #         empty_space[pos[m[1]]].append(m[0])
         # coll moves
-        empty_space, parallel_move_groups, num_movement_stage, cir_qubit_idle_time, cir_fidelity_atom_transfer, list_transfer_duration, list_movement_duration, target_location_index, change_dest, move_in_loop, count, loop_num, split_succ, split_fail = coll_moves_scheduler(empty_space, initial_space, n, Row, move_distance, move_group, num_aod, move_in_qubits, move_out_qubits,
+        empty_space, parallel_move_groups, num_movement_stage, cir_qubit_idle_time, cir_fidelity_atom_transfer, list_transfer_duration, list_movement_duration, target_location_index, change_dest, move_in_loop, count, loop_num, aod_num  = coll_moves_scheduler(empty_space, initial_space, n, Row, move_distance, move_group, num_aod, move_in_qubits, move_out_qubits,
         qubits_not_in_storage, cir_qubit_idle_time, cir_fidelity_atom_transfer, list_transfer_duration,
         list_movement_duration, num_movement_stage, location_index, target_location_index, location_size, 
-        method, count, loop_num, split_succ, split_fail, cost_para, para1, para2)
+        method, count, loop_num, cost_para, para1, para2)
+
+        aod_sum += aod_num
+        # pick_drop_orig_num += pick_drop_orig
+        # pick_drop_split_num += pick_drop_split
 
         ###################################################################################################################
         # trivial task reduction
@@ -345,4 +351,4 @@ def mvqc(cz_blocks, Row, n, storage_flag, d, num_aod, method, cost_para, para1, 
     # print("cir_fidelity_atom_transfer", cir_fidelity_atom_transfer)
     # print("cir_fidelity_coherence", cir_fidelity_coherence)
     # print("coherence_time", Coherence_Time)
-    return sum(list_transfer_duration), sum(list_movement_duration), cir_fidelity, cir_fidelity_1q_gate, cir_fidelity_2q_gate, cir_fidelity_2q_gate_for_idle, cir_fidelity_atom_transfer, cir_fidelity_coherence, num_movement_stage, count, loop_num, split_succ, split_fail
+    return sum(list_transfer_duration), sum(list_movement_duration), cir_fidelity, cir_fidelity_1q_gate, cir_fidelity_2q_gate, cir_fidelity_2q_gate_for_idle, cir_fidelity_atom_transfer, cir_fidelity_coherence, num_movement_stage, count, loop_num, aod_sum

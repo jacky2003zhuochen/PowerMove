@@ -7,12 +7,10 @@ import json
 # method_list = ['base', 'move_split', 'change_dest', 'change_dest+move_split', "break_chains", "break_chains+change_dest", "break_chains+change_dest+move_split"]
 # method_list = ['base', 'move_split',  'change_dest+move_split', "break_chains+change_dest+move_split", 'move_split_double',  'change_dest+move_split_double', "break_chains+change_dest+move_split_double"]
 # method_list = ["break_chains+change_dest+move_split", "break_chains+change_dest+move_split_triple", "break_chains+change_dest+move_split_double"]
-method_list = ['base',"break_chains+change_dest+move_split_sort_rand", "break_chains+change_dest+move_split_sim6_double_1", 'break_chains+change_dest+move_split_double_half_sim_']
-# method_list = ['base', "break_chains", "break_chains+change_dest", "break_chains+change_dest+move_split", "double_break_chains", "double_break_chains+change_dest", "double_break_chains+change_dest+move_split"]
-# method_list = ['base', "dynamic_min3_ratio07_break_chains", "dynamic_min3_ratio07_break_chains+change_dest", "dynamic_min3_ratio07_break_chains+change_dest+move_split", "dynamic_break_chains", "dynamic_break_chains+change_dest", "dynamic_break_chains+change_dest+move_split"]
-# method_list = ['base', "break_chains+change_dest+move_split", "break_chains+change_dest+move_split_sim22", "break_chains+change_dest+move_split_sim2"]
+# method_list = ["base2", "powermove","break_chains2","break_chains+change_dest+move_split_sort_rand", "break_chains+change_dest+move_split_sim6_double_1", 'break_chains+change_dest+move_split_double_half_sim_', 'break_chains+change_dest+move_split_double_half_pick']
+# method_list = ["base", "powermove", 'break_chains+change_dest+move_split_double_half_sim', 'break_chains+change_dest+move_split_double_half_pick']
 # method_list = ['base', 'move_split', 'change_dest', 'change_dest+move_split', "break_chains", "break_chains+change_dest", "break_chains+change_dest+move_split"]
-
+method_list = ['break_chains+change_dest+move_split_double_half_pick', 'break_chains+change_dest+move_split_double_half_pick2', 'break_chains+change_dest+move_split_double_half_pick3']
 method = 'break_chains+change_dest+move_split'
 
 N_Qubit_Dic = {}
@@ -23,7 +21,9 @@ base1 = 0
 base2 = 0
 opt1 = 0
 opt2 = 0
-cost_para_list2 = {'ghz':5, 'cat':3, 'ising':1.2, 'wstate':1, 'qft':0.9}
+# cost_para_list2 = {'ghz':5, 'cat':3, 'ising':1.2, 'wstate':1, 'qft':0.9}
+cost_para_list2 = {'ghz':5, 'cat':3.5, 'ising':1.5, 'wstate':2, 'qft':1.2}
+
 duration_list = {}
 bench_list = ['ghz', 'cat', 'ising', 'wstate', 'qft']#'bwt', #'vqe_uccsd']
 # bench_list = ['hs']
@@ -32,12 +32,14 @@ N_Bench_list = {'hs':[10, 30, 50, 70, 100, 150, 200],'adder':[10,28,64,118,433],
 tune_para_dic = {}
 for benchm in bench_list:
     duration_list = {}
+#     pick_drop_orig_list = {}
+#     pick_drop_split_list = {}
     N_Qubit_List = N_Bench_list[benchm]
-    for method in method_list:
-        duration_list[method] = []
-        if method == 'break_chains+change_dest+move_split_double_half_sim_':
-            thre  = cost_para_list2[benchm]
-            method = method + str(thre)
+    # for method in method_list:
+        # duration_list[method] = []
+        # if method == 'break_chains+change_dest+move_split_double_half_sim_':
+        #     thre  = cost_para_list2[benchm]
+        #     method = method + str(thre)
 # for degree in range(1,11):
 # for p in P_List:
     # duration_list = {}
@@ -49,81 +51,94 @@ for benchm in bench_list:
         # plt.plot(N_Qubit_List[-3:], duration_list['base'][-3:], marker='o', label=f"base")
         # base1 = duration_list['base'][-1]
         # opt1 = duration_list['base'][-1]
-        # for method in method_list:
+    # for method in method_list:
         # for min_len in [2,3,4,5]:
         # for thre in [0,0.1,0.15,0.2,0.25,0.3,0.35,0.4,0.5,0.6]:
         # for thre in [0.1,0.2,0.3,0.35,0.4,0.5,0.6,0.7,0.8,0.9]:
-    # for thre in [0.1, 0.3, 0.5, 0.7, 0.8, 0.2,0.25,0.35,0.4,0.45,0.55,0.6, 0.65, 0.75, 0.85, 30]:
+    # for thre in [0.8,1,1.2,1.5,1.75,2,3,5,10,20,5000000]:
+    # for thre in [0.5,0.7,0.8,0.9,1,1.2,1.5,2,2.5,3,5,7]:
     # for thre in [0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1]:
-    # for thre in [0.2,0.4,0.5,0.6,0.7,0.8,0.9,1]:
-    # for thre in [0.1, 0.3, 0.5, 0.7, 0.8, 0.9, 1, 2, 3, 5, 10, 30]:
-    # for thre in [1,0.5, 0.7, 0.8, 0.9, 0.85,0.95,0.6,1.2,1.5,2.5,3.5,4,6,8,2, 3, 5, 10]:
-    # for thre in [0.1, 0.3, 0.4,0.5, 0.6,0.7, 0.8, 0.9, 1, 2, 5, 10, 30]:
+    # for thre in [0.2, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9,1]:
+    for thre in [0.1, 0.2,0.4,0.3, 0.5, 0.7, 0.8, 0.9, 1, 2, 3, 5, 10, 30]:
     # for thre in [1,0.75,0.85,0.95,0.65,1.2,1.5,2.5,3,4,7,15,0.5, 0.6,0.7, 0.8, 0.9, 2, 5, 10]:
-        # path = f"data/qaoa_regular{degree}_no_storage_compare_{method}_double_half_sim_{thre}.txt"
-        # path = f"data/qaoa_rand_no_storage{p}_compare_{method}_double_half_sim_{thre}.txt"
-        # path = f"data/compare_{benchm}_{method}_double_half_sim_{thre}.txt"
-        path = f"data/compare_{benchm}_{method}.txt"
+        # path = f"data/qaoa_regular{degree}_no_storage_compare_{method}_double_half_sim62_{thre}.txt"
+        # path = f"data/qaoa_regular{degree}_no_storage_compare_{method}.txt"
+        # path = f"data/qaoa_rand_no_storage{p}_compare_{method}_double_half_sim10_{thre}.txt"
+        # path = f"data/qaoa_rand_no_storage{p}_compare_{method}.txt"
+        # path = f"data/compare_{benchm}_{method}_double_half_sim6_{thre}.txt"
+        path = f"data/compare_{benchm}_{method}_double_half_{thre}.txt"
+        # path = f"data/compare_{benchm}_{method}.txt"
         try:
             with open(path, "r", encoding="utf-8") as f:
                 # N_Qubit_Dic[method] = json.loads(f.readline().strip())
                 # N_Qubit_Dic[str(thre)] = json.loads(f.readline().strip())
-                duration_list[method] = json.loads(f.readline().strip())
-                # duration_list[str(thre)] = json.loads(f.readline().strip())
+                # duration_list[method] = json.loads(f.readline().strip())
+                duration_list[str(thre)] = json.loads(f.readline().strip())
                 # if len(duration_list[method]) == 0:
                 #     break
-                if method == 'base':
-                # if method == "break_chains+change_dest+move_split":
-                    base1 = duration_list[method][-1]
-                    base2 = duration_list[method][-2]
-                    opt1 = duration_list[method][-1]
-                    opt2 = duration_list[method][-2]
+                # if method == 'base':
+                    # base1 = duration_list[method][-1]
+                    # base2 = duration_list[method][-2]
+                    # opt1 = duration_list[method][-1]
+                    # opt2 = duration_list[method][-2]
                 # print(first_line)
         except FileNotFoundError:
             continue
         # if len(duration_list[method]) == 0:
         #     break
 
-        # if thre == 1:
-        #     min_val = duration_list[str(thre)][-1]
-        #     min_idx = thre
-        #     min_val_2 = duration_list[str(thre)][-2]
-        #     min_idx_2 = thre
-        # else:
-        #     if duration_list[str(thre)][-1] <= min_val:
-        #         min_val = duration_list[str(thre)][-1]
-        #         min_idx = thre
-        #     if duration_list[str(thre)][-2] <= min_val_2:
-        #         min_val_2 = duration_list[str(thre)][-2]
-        #         min_idx_2 = thre
-        # opt1 = min(opt1,duration_list[method][-1])
-        # opt2 = min(opt2,duration_list[method][-2])
+        if thre == 0.1:
+            min_val = duration_list[str(thre)][-1]
+            min_idx = thre
+            min_val_2 = duration_list[str(thre)][-2]
+            min_idx_2 = thre
+        else:
+            if duration_list[str(thre)][-1] <= min_val:
+                min_val = duration_list[str(thre)][-1]
+                min_idx = thre
+            if duration_list[str(thre)][-2] <= min_val_2:
+                min_val_2 = duration_list[str(thre)][-2]
+                min_idx_2 = thre
+        
+        # opt1 = min(opt1,pick_drop_split_list[method][-1])
+        # opt2 = min(opt2,pick_drop_split_list[method][-2])
         # plt.plot(N_Qubit_Dic[method], duration_list[method], marker='o', label=f"{method}")
         # plt.plot(N_Qubit_Dic[str(thre)], duration_list[str(thre)], marker='o', label=f"{str(thre)}")
-        if method == "break_chains+change_dest+move_split_sort_rand":
-            plt.plot(N_Qubit_List, duration_list[method], marker='o', label="move split")
-        elif method == "break_chains+change_dest+move_split_sim6_double_1":
-            plt.plot(N_Qubit_List, duration_list[method], marker='o', label="double split")
-        elif method == "base":
-            plt.plot(N_Qubit_List, duration_list[method], marker='o', label="baseline")
-        else:
-            plt.plot(N_Qubit_List, duration_list[method], marker='o', label=f"opt")
-        # plt.plot(N_Qubit_List, duration_list[str(thre)], marker='o', label=f"{thre}")
+        # N_Qubit_List = N_Qubit_Dic[str(thre)]
+        # if method == "break_chains+change_dest+move_split_sort_rand":
+        #     plt.plot(N_Qubit_List, duration_list[method], marker='o', label="move split")
+        # elif method == "break_chains+change_dest+move_split_sim6_double_1":
+        #     plt.plot(N_Qubit_List, duration_list[method], marker='o', label="double split")
+        # elif method == "base":
+        #     plt.plot(N_Qubit_List, duration_list[method], marker='o', label="baseline")
+        # elif method == "change_dest2":
+        #     plt.plot(N_Qubit_List, duration_list[method], marker='o', label="break loops")
+        # elif method == "break_chains2":
+        #     plt.plot(N_Qubit_List, duration_list[method], marker='o', label="break chains")
+        # elif method == "powermove":
+        #     plt.plot(N_Qubit_List, duration_list[method], marker='o', label=f"powermove")
+        # elif method == 'break_chains+change_dest+move_split_double_half_pick':
+        #     plt.plot(N_Qubit_List, duration_list[method], marker='o', label=f"Base")
+        # else:
+        #     plt.plot(N_Qubit_List, pick_drop_split_list[method], marker='o', label=f"pick drop")
+        plt.plot(N_Qubit_List, duration_list[str(thre)], marker='o', label=f"{thre}")
     # plt.title(f"QAOA Regular{degree}")
 
     # if base1 == 0:
     #     continue
-    # plt.text(0.5, -0.14, f"at q={N_Qubit_List[-1]}, best para is {min_idx}, {min_val}",
-    #     ha='center', va='top', transform=plt.gca().transAxes)
-    # plt.text(0.5, -0.20, f"at q={N_Qubit_List[-2]}, best para is {min_idx_2}, {min_val_2}",
-    #         ha='center', va='top', transform=plt.gca().transAxes)
-    # tune_para_dic[benchm] = (min_idx, min_idx_2)
+    plt.text(0.5, -0.14, f"at q={N_Qubit_List[-1]}, best para is {min_idx}, {min_val}",
+        ha='center', va='top', transform=plt.gca().transAxes)
+    plt.text(0.5, -0.20, f"at q={N_Qubit_List[-2]}, best para is {min_idx_2}, {min_val_2}",
+            ha='center', va='top', transform=plt.gca().transAxes)
+    tune_para_dic[benchm] = (min_idx, min_idx_2)
     # tune_para_dic[p] = (min_idx, min_idx_2)
     # tune_para_dic[degree] = (min_idx, min_idx_2)
-    plt.text(0.5, -0.14, f"at q={N_Qubit_List[-1]}, improve {int(1000*(base1/opt1-1))/10}%",
-        ha='center', va='top', transform=plt.gca().transAxes)
-    plt.text(0.5, -0.20, f"at q={N_Qubit_List[-2]}, improve {int(1000*(base2/opt2-1))/10}%",
-            ha='center', va='top', transform=plt.gca().transAxes)
+    # plt.text(0.5, -0.14, f"at q={N_Qubit_List[-1]}, improve {int(1000*(base1/opt1-1))/10}%",
+    # plt.text(0.5, -0.14, f"at q={N_Qubit_List[-1]}, {opt1/base1*100-100:.1f}% more pick and drop times",
+    #     ha='center', va='top', transform=plt.gca().transAxes)
+    # # plt.text(0.5, -0.20, f"at q={N_Qubit_List[-2]}, improve {int(1000*(base2/opt2-1))/10}%",
+    # plt.text(0.5, -0.20, f"at q={N_Qubit_List[-2]}, {opt2/base2*100-100:.1f}% more pick and drop times",
+    #         ha='center', va='top', transform=plt.gca().transAxes)
     plt.subplots_adjust(bottom=0.2)
 
     # plt.tight_layout()
@@ -134,13 +149,14 @@ for benchm in bench_list:
     plt.legend()
     plt.xlabel("qubit")
     plt.ylabel("duration list")
+    # plt.ylabel("pick and drop times")
     # plt.text(1, -0.2, f"at q={N_Qubit_List[-1]}, improve {int(1000*(base1/opt1-1))/10}%", ha='center', va='top')
     # plt.text(1, -0.4, f"at q={N_Qubit_List[-2]}, improve {int(1000*(base2/opt2-1))/10}%", ha='center', va='top')
-    # plt.savefig(f"fig/compare_{benchm}_double_half_sim.png")
+    # plt.savefig(f"fig/compare_{benchm}_double_conflict_tune2.png")
     # plt.savefig(f"fig/compare_regular{degree}_sim6_double.png")
-    # plt.savefig(f"fig/compare_regular{degree}_double_half_sim.png")
-    plt.savefig(f"fig/compare_{benchm}_tune_half_split.png")
-    # plt.savefig(f"fig/compare_rand{p}_double_half_sim.png")
+    # plt.savefig(f"fig/compare_regular{degree}_double_half_sim6.png")
+    plt.savefig(f"fig/compare_{benchm}_double_half.png")
+    # plt.savefig(f"fig/compare_rand{p}_double_half_sim10.png")
     # plt.savefig(f"fig/compare_random{p}_double_break_chain_{min_len}tune.png")
     # print(base1,base2,opt1,opt2)
     # print(f"at q={N_Qubit_List[-1]}, improve {int(1000*(base1/opt1-1))/10}%")

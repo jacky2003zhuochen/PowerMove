@@ -32,22 +32,23 @@ def find_threshold_key(d, threshold=0.7):
     return sorted_items[-1][0] if sorted_items else None
 
 P_List = [0.1, 0.2, 0.3, 0.4, 0.5]
-cost_para_list = {'ghz':0.9, 'cat':0.75, 'ising':0.5, 'wstate':0.35, 'qft':0.4}
-cost_para_list2 = {'ghz':5, 'cat':3, 'ising':1.2, 'wstate':1, 'qft':0.9}
+cost_para_list = {'ghz':0.35, 'cat':0.3, 'ising':0.3, 'wstate':0.2, 'qft':0.4}
+cost_para_list2 = {'ghz':5, 'cat':0.3, 'ising':0.5, 'wstate':0.1, 'qft':3}
 
 # bench_list = [ 'ghz', 'knn', 'multiplier', 'qft', ]
 # bench_list = ['adder', 'bv', 'cc', 'dnn', 'ghz', 'knn', 'multiplier', 'qft', 'cat', 'ising', 'qugan', 'square_root', 'swap_test', 'wstate', ]#'bwt', #'vqe_uccsd']
-bench_list = ['ghz', 'cat', 'ising', 'wstate', 'qft']#'bwt', #'vqe_uccsd']
-# bench_list = ['qft',] #'vqe_uccsd']
+bench_list = ['ghz', 'cat', 'ising', 'wstate','qft']#'bwt', #'vqe_uccsd']
+# bench_list = ['ising'] #'vqe_uccsd']
 N_Bench_list = {'qaoa_rand':[10, 20, 30 ,50, 100], 'qaoa_regular':[30, 40, 50, 60, 80, 100],'adder':[10,28,64,118,433], 'bv':[14,19,30,70,140,280], 'bwt':[21,37,57,97,177], 'cc':[12,32,64,151,301], 'dnn':[8,16,33,51], 'ghz':[23,40,78,127,255], 'knn':[25,31,41,67,129,341], 'multiplier':[15,45,75,350,400], 'qft':[4,18,29,63,160,320], 'cat':[4,22,35,65,130,260], 'ising':[10,26,34,42,66,98,420], 'qugan':[39, 71, 111, 395], 'square_root':[18,45,60], 'swap_test':[25,41,83,115,361], 'vqe_uccsd':[4,6,8,28], 'wstate':[3,27,36,76,118,380]}
 # method_list = ['base', "move_split", "change_dest", "change_dest+move_split"]
 # method_list = ['base', 'move_split', 'change_dest', 'change_dest+move_split', "break_chains", "break_chains+change_dest", "break_chains+change_dest+move_split"]
 # method_list = ['move_split', 'change_dest+move_split', "break_chains+change_dest+move_split"]
-# method_list = ['break_chains+change_dest+move_split']
+# method_list = ['powermove']
 method_list = ["break_chains+change_dest+move_split"]
 # method_list = ['move_split',  'change_dest+move_split', "break_chains+change_dest+move_split"]
 # method_list = ['break_chains', "break_chains+change_dest", "break_chains+change_dest+move_split"]
 para2 = 0
+aod_num_compare = {}
 for method in method_list:
     print(method)
 
@@ -59,19 +60,21 @@ for method in method_list:
     # for n in [4, 22, 35, 65, 130, 260]:#cat
     for benchm in bench_list:
         cost_para = cost_para_list[benchm]
+        cost_para2 = cost_para_list2[benchm]
         print(benchm)
         # for para1 in [0.4,0.6,0.5,0.35,0.3,0.25,0.2,0.15,0.1,0.05,0]:
         # for para1 in [0.4,0.6,0.7,0.75,0.8,0.85,0.9,0.95,0.5,0.3,0.2,0,-0.2]:
         # for para1 in [0.85,0.9,0.95]:
-        # for thre in [0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.75,0.8,0.85,0.9,0.95]:
+
+        # for thre in [0.5,0.7,0.8,0.9,1,1.2,1.5,2,2.5,3,5,7]:
+
         # for thre in [0.2,0.3,0.4]:
         # for min_len in [2,3,4,5]:
         # for para2 in [0,0.1,0.2,0.3,0.4,0.6,0.9]:
         # for thre in [0.2,0.25,0.35,0.4,0.45,0.55,0.6, 0.65, 0.75, 0.85]:
-        # for thre in [0.1, 0.3, 0.5, 0.7, 0.8, 0.9, 1, 2, 3, 5, 10, 30]:
-        for thre in [0.85,0.95,0.6,1.2,1.5,2.5,3.5,4,6,8]:
-
-        # for thre in [0.2, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9,1]:
+        # for thre in [0.1, 0.2,0.4,0.3, 0.5, 0.7, 0.8, 0.9, 1, 2, 3, 5, 10, 30]:
+        # for thre in [0.2,0.4,0.25,0.35]:
+        for thre in [0.2, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9,1]:
             no_storage_transfer_duration_list = [] 
             no_storage_move_duration_list = [] 
             no_storage_cir_fidelity_list = [] 
@@ -85,6 +88,10 @@ for method in method_list:
             threshold_length_list = []
             loop_num_list = []
             q_list = []
+            pick_drop_orig_list = []
+            pick_drop_split_list = []
+            pick_drop_orig_ratio_list = []
+            aod_num_list = []
             for n in N_Bench_list[benchm]:
                 index = random.choice(I_List)
                 Row = math.ceil(math.sqrt(n))
@@ -113,11 +120,16 @@ for method in method_list:
                 # cz_blocks = get_cz_blocks(circ)
 
                 # try:
-                no_storage_transfer_duration, no_storage_move_duration, no_storage_cir_fidelity, no_storage_cir_fidelity_1q_gate, no_storage_cir_fidelity_2q_gate, no_storage_cir_fidelity_2q_gate_for_idle, no_storage_cir_fidelity_atom_transfer, no_storage_cir_fidelity_coherence, no_storage_nstage, count, loop_num, split_succ, split_fail = mvqc(cz_blocks, Row, n, False, d, 1, method, cost_para, para1=thre, para2=0)
+                no_storage_transfer_duration, no_storage_move_duration, no_storage_cir_fidelity, no_storage_cir_fidelity_1q_gate, no_storage_cir_fidelity_2q_gate, no_storage_cir_fidelity_2q_gate_for_idle, no_storage_cir_fidelity_atom_transfer, no_storage_cir_fidelity_coherence, no_storage_nstage, count, loop_num, aod_num = mvqc(cz_blocks, Row, n, False, d, 1, method, cost_para, para1=thre, para2=cost_para2)
                 # except:
                 #     print("split", benchm)
                 #     break
 
+                # print(pick_drop_orig_num, pick_drop_split_num, pick_drop_split_num/pick_drop_orig_num)
+                # pick_drop_orig_list.append(pick_drop_orig_num)
+                # pick_drop_split_list.append(pick_drop_split_num)
+                # pick_drop_orig_ratio_list.append(pick_drop_split_num/pick_drop_orig_num)
+                aod_num_list.append(aod_num)
                 sorted(count.items())
                 # print(loop_num)
                 # print(count)
@@ -137,10 +149,14 @@ for method in method_list:
                 loop_num_list.append(loop_num)
             # print(split_succ, split_fail)
 
-            with open(f"data/compare_{benchm}_{method}_double_half_sim_{thre}.txt", 'w') as file:
-            # with open(f"data/compare_{benchm}_{method}_sort_rand.txt", 'w') as file:
+            aod_num_compare[benchm] = [aod_num_compare.get(benchm, []), aod_num_list]
+            # with open(f"data/compare_{benchm}_{method}_double_half_sim_{cost_para2}.txt", 'w') as file:
+            with open(f"data/compare_{benchm}_{method}_double_half_sim6.txt", 'w') as file:
             # with open(f"data/compare_{benchm}_{method}.txt", 'w') as file:
                 file.write(str([x + y for x, y in zip(no_storage_transfer_duration_list, no_storage_move_duration_list)]) + '\n') 
+                # file.write(str(pick_drop_orig_list) + '\n')  
+                # file.write(str(pick_drop_split_list) + '\n')  
+                # file.write(str(pick_drop_orig_ratio_list) + '\n')
                 file.write(str(loop_num_list) + '\n')  
                 file.write(str(chain_length_list) + '\n')  
                 file.write(str(threshold_length_list) + '\n')
@@ -153,4 +169,11 @@ for method in method_list:
                 file.write(str(no_storage_cir_fidelity_atom_transfer_list) + '\n')  
                 file.write(str(no_storage_cir_fidelity_coherence_list) + '\n') 
                 file.write(str(no_storage_nstage_list) + '\n') 
-
+        # print(no_storage_cir_fidelity_list,no_storage_cir_fidelity_atom_transfer_list, no_storage_cir_fidelity_coherence_list)
+    # print(aod_num_compare)
+    # for benchm in bench_list:
+    #     # print(np.array(aod_num_compare[benchm][1])/np.array(aod_num_compare[benchm][0][1]))
+    #     print(benchm)
+    #     print(np.mean((np.array(aod_num_compare[benchm][1])/np.array(aod_num_compare[benchm][0][1]))[1:]))
+    #     print(np.mean((np.array(aod_num_compare[benchm][1])/np.array(aod_num_compare[benchm][0][1]))[2:]))
+    #     print(np.mean((np.array(aod_num_compare[benchm][1])/np.array(aod_num_compare[benchm][0][1]))[3:]))

@@ -171,6 +171,9 @@ def mvqc(cz_blocks, Row, n, storage_flag, d, num_aod, method, cost_para, para1, 
 
     if method == "powermove":
         location_size = 4
+    if "slm" in method:
+        location_size = int(method[-1])
+        # location_size = int(method[method.find("slm")+1])
     # storage_occ = {}
 
     # for i in range(Row):

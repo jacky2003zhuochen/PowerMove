@@ -50,14 +50,14 @@ def find_threshold_key(d, threshold=0.7):
 # N_Qubit_List = [5, 10, 20, 30 ,50, 100]
 N_Qubit_List = [10, 20, 30 ,50, 100] #rand
 # N_Qubit_List = [6, 10, 20, 30, 40, 50, 60, 80, 100]
-# N_Qubit_List = [30, 40, 50, 60, 80, 100] #regular
+N_Qubit_List = [30, 40, 50, 60, 80, 100] #regular
 P_List = [0.1, 0.2, 0.3, 0.4, 0.5]
 # P_List = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]
 I_List = range(10)
 
 index = random.choice(I_List)
 type = 'rand'
-# type = 'regular'
+type = 'regular'
 d = 1
 # method_list = ['break_chains+change_dest+move_split']
 # method_list = ['base', 'move_split', 'change_dest', 'change_dest+move_split', "break_chains", "break_chains+change_dest", "break_chains+change_dest+move_split"]
@@ -69,12 +69,12 @@ regular_cost_para={1:0.75, 2:0.5, 3:0.4, 4:0.25, 5:0.3, 6:0.2, 7:0.35, 8:0.3, 9:
 regular_cost_para2={1:5, 2:1, 3:2, 4:0.1, 5:7, 6:0.8, 7:3, 8:2, 9:2, 10:30}
 for method in method_list:
     print(method)
-    for P in P_List:
-        cost_para = rand_cost_para[P]
-        cost_para2 = rand_cost_para2[P]
-    # for degree in range(1,11):
-    #     cost_para = regular_cost_para[degree]
-    #     cost_para2 = regular_cost_para2[degree]
+    # for P in P_List:
+    #     cost_para = rand_cost_para[P]
+    #     cost_para2 = rand_cost_para2[P]
+    for degree in range(1,11):
+        cost_para = regular_cost_para[degree]
+        cost_para2 = regular_cost_para2[degree]
     # for P in [0.5]:
         # for thre in [0.85, 0.95,0.75]:
         # for thre in [0.1,0.2, 0.3, 0.4,0.5, 0.6,0.7, 0.8, 0.9, 1, 2, 5, 30]:
@@ -100,8 +100,8 @@ for method in method_list:
             for n in N_Qubit_List:
                 Row = math.ceil(math.sqrt(n))
 
-                path = f"benchmarks/qaoa/{type}/q{n}_p{P}/i{index}.txt"
-                # path = f"benchmarks/qaoa/{type}/q{n}_regular{degree}/i{index}.txt"
+                # path = f"benchmarks/qaoa/{type}/q{n}_p{P}/i{index}.txt"
+                path = f"benchmarks/qaoa/{type}/q{n}_regular{degree}/i{index}.txt"
                 try:
                     with open(path, "r") as fid:
                         gates = eval(fid.read())
@@ -140,11 +140,11 @@ for method in method_list:
                 chain_length_list.append(count)
                 loop_num_list.append(loop_num)
             # with open(f"data/qaoa_{type}_no_storage{P}_compare_{method}.txt", 'w') as file:
-            with open(f"data/qaoa_{type}_no_storage{P}_compare_{method}_double_half_sim10_{thre}.txt", 'w') as file:
+            # with open(f"data/qaoa_{type}_no_storage{P}_compare_{method}_double_half_sim10_{thre}.txt", 'w') as file:
             # with open(f"data/qaoa_{type}{degree}_no_storage_compare_{method}_double_half_pick.txt", 'w') as file:
-            # with open(f"data/qaoa_{type}{degree}_no_storage_compare_{method}_double_half_sim62_{thre}.txt", 'w') as file:
+            with open(f"data/qaoa_{type}{degree}_no_storage_compare_{method}_double_half_sim10_{thre}.txt", 'w') as file:
                 # file.write(str(N_Qubit_List) + '\n')
-                # file.write(str(q_list) + '\n')        
+                file.write(str(q_list) + '\n')
                 file.write(str([x + y for x, y in zip(mvqc_transfer_duration_list, mvqc_move_duration_list)]) + '\n') 
                 file.write(str(loop_num_list) + '\n') 
                 file.write(str(chain_length_list) + '\n') 

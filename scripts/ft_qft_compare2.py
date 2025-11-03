@@ -43,8 +43,8 @@ N_Bench_list = {'qaoa_rand':[10, 20, 30 ,50, 100], 'qaoa_regular':[30, 40, 50, 6
 # method_list = ['base', "move_split", "change_dest", "change_dest+move_split"]
 # method_list = ['base', 'move_split', 'change_dest', 'change_dest+move_split', "break_chains", "break_chains+change_dest", "break_chains+change_dest+move_split"]
 # method_list = ['move_split', 'change_dest+move_split', "break_chains+change_dest+move_split"]
-# method_list = ['powermove']
 method_list = ["break_chains+change_dest+move_split"]
+# method_list = ["slm3", "slm4", "slm5"]
 # method_list = ['move_split',  'change_dest+move_split', "break_chains+change_dest+move_split"]
 # method_list = ['break_chains', "break_chains+change_dest", "break_chains+change_dest+move_split"]
 para2 = 0
@@ -74,106 +74,106 @@ for method in method_list:
         # for thre in [0.2,0.25,0.35,0.4,0.45,0.55,0.6, 0.65, 0.75, 0.85]:
         # for thre in [0.1, 0.2,0.4,0.3, 0.5, 0.7, 0.8, 0.9, 1, 2, 3, 5, 10, 30]:
         # for thre in [0.2,0.4,0.25,0.35]:
-        for thre in [0.2, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9,1]:
-            no_storage_transfer_duration_list = [] 
-            no_storage_move_duration_list = [] 
-            no_storage_cir_fidelity_list = [] 
-            no_storage_cir_fidelity_1q_gate_list = [] 
-            no_storage_cir_fidelity_2q_gate_list = [] 
-            no_storage_cir_fidelity_2q_gate_for_idle_list = [] 
-            no_storage_cir_fidelity_atom_transfer_list = [] 
-            no_storage_cir_fidelity_coherence_list = []
-            no_storage_nstage_list = []
-            chain_length_list = []
-            threshold_length_list = []
-            loop_num_list = []
-            q_list = []
-            pick_drop_orig_list = []
-            pick_drop_split_list = []
-            pick_drop_orig_ratio_list = []
-            aod_num_list = []
-            for n in N_Bench_list[benchm]:
-                index = random.choice(I_List)
-                Row = math.ceil(math.sqrt(n))
-        # for n in [10, 20, 30, 50]:
-                try:
-                    # circ = QuantumCircuit.from_qasm_file(f"benchmarks\QASMBench-master\ising_n{n}\ising_n{n}_transpiled.qasm")
-                    circ = QuantumCircuit.from_qasm_file(f"benchmarks\\QASMBench-master\\{benchm}\\{benchm}_n{n}\\{benchm}_n{n}_transpiled.qasm")
-                    # circ_path = Path("benchmarks") / "QASMBench-master" / benchm / f"{benchm}_n{n}" / f"{benchm}_n{n}_transpiled.qasm"
-                    # circ = QuantumCircuit.from_qasm_file(circ_path)
-                except:
-                    # circ = QuantumCircuit.from_qasm_file(f"benchmarks\QASMBench-master\ising_n{n}\ising_n{n}.qasm")
-                    # continue
-                    circ = QuantumCircuit.from_qasm_file(f"benchmarks\\QASMBench-master\\{benchm}\\{benchm}_n{n}\\{benchm}_n{n}.qasm")
+        # for thre in [0.2, 0.3,0.4, 0.5, 0.6, 0.7, 0.8, 0.9,1]:
+        no_storage_transfer_duration_list = [] 
+        no_storage_move_duration_list = [] 
+        no_storage_cir_fidelity_list = [] 
+        no_storage_cir_fidelity_1q_gate_list = [] 
+        no_storage_cir_fidelity_2q_gate_list = [] 
+        no_storage_cir_fidelity_2q_gate_for_idle_list = [] 
+        no_storage_cir_fidelity_atom_transfer_list = [] 
+        no_storage_cir_fidelity_coherence_list = []
+        no_storage_nstage_list = []
+        chain_length_list = []
+        threshold_length_list = []
+        loop_num_list = []
+        q_list = []
+        pick_drop_orig_list = []
+        pick_drop_split_list = []
+        pick_drop_orig_ratio_list = []
+        aod_num_list = []
+        for n in N_Bench_list[benchm]:
+            index = random.choice(I_List)
+            Row = math.ceil(math.sqrt(n))
+    # for n in [10, 20, 30, 50]:
+            try:
+                # circ = QuantumCircuit.from_qasm_file(f"benchmarks\QASMBench-master\ising_n{n}\ising_n{n}_transpiled.qasm")
+                circ = QuantumCircuit.from_qasm_file(f"benchmarks\\QASMBench-master\\{benchm}\\{benchm}_n{n}\\{benchm}_n{n}_transpiled.qasm")
+                # circ_path = Path("benchmarks") / "QASMBench-master" / benchm / f"{benchm}_n{n}" / f"{benchm}_n{n}_transpiled.qasm"
+                # circ = QuantumCircuit.from_qasm_file(circ_path)
+            except:
+                # circ = QuantumCircuit.from_qasm_file(f"benchmarks\QASMBench-master\ising_n{n}\ising_n{n}.qasm")
+                # continue
+                circ = QuantumCircuit.from_qasm_file(f"benchmarks\\QASMBench-master\\{benchm}\\{benchm}_n{n}\\{benchm}_n{n}.qasm")
 
-                # circ = QuantumCircuit.from_qasm_file(f"benchmarks\QASMBench-master\medium\qec9xz_n17\qec9xz_n17.qasm")
-                # circ = QuantumCircuit.from_qasm_file(f"benchmarks/vqe/vqe_n{n}.qasm")
-                # with open(f"benchmarks/qft/qftn{n}.qasm", "r") as f:
-                # with open(f"benchmarks/bv/new_bv_n{n}.qasm", "r") as f:
-                # with open(f"benchmarks/rca/rca_n{n}.qasm", "r") as f:
-                # with open(f"benchmarks/vqe/vqe_n{n}.qasm", "r") as f:
-                    # qasm_code = f.read()
-                # circ = loads(qasm_code)
+            # circ = QuantumCircuit.from_qasm_file(f"benchmarks\QASMBench-master\medium\qec9xz_n17\qec9xz_n17.qasm")
+            # circ = QuantumCircuit.from_qasm_file(f"benchmarks/vqe/vqe_n{n}.qasm")
+            # with open(f"benchmarks/qft/qftn{n}.qasm", "r") as f:
+            # with open(f"benchmarks/bv/new_bv_n{n}.qasm", "r") as f:
+            # with open(f"benchmarks/rca/rca_n{n}.qasm", "r") as f:
+            # with open(f"benchmarks/vqe/vqe_n{n}.qasm", "r") as f:
+                # qasm_code = f.read()
+            # circ = loads(qasm_code)
 
-                test_circuit = transpile(circ, basis_gates=["u1", "u2", "u3", "cz", "id"],  optimization_level=2)
-                cz_blocks = get_cz_blocks(test_circuit)
-                # cz_blocks = get_cz_blocks(circ)
+            test_circuit = transpile(circ, basis_gates=["u1", "u2", "u3", "cz", "id"],  optimization_level=2)
+            cz_blocks = get_cz_blocks(test_circuit)
+            # cz_blocks = get_cz_blocks(circ)
 
-                # try:
-                no_storage_transfer_duration, no_storage_move_duration, no_storage_cir_fidelity, no_storage_cir_fidelity_1q_gate, no_storage_cir_fidelity_2q_gate, no_storage_cir_fidelity_2q_gate_for_idle, no_storage_cir_fidelity_atom_transfer, no_storage_cir_fidelity_coherence, no_storage_nstage, count, loop_num, aod_num = mvqc(cz_blocks, Row, n, False, d, 1, method, cost_para, para1=thre, para2=cost_para2)
-                # except:
-                #     print("split", benchm)
-                #     break
+            # try:
+            no_storage_transfer_duration, no_storage_move_duration, no_storage_cir_fidelity, no_storage_cir_fidelity_1q_gate, no_storage_cir_fidelity_2q_gate, no_storage_cir_fidelity_2q_gate_for_idle, no_storage_cir_fidelity_atom_transfer, no_storage_cir_fidelity_coherence, no_storage_nstage, count, loop_num, aod_num = mvqc(cz_blocks, Row, n, False, d, 1, method, cost_para, para1=0.7, para2=20)
+            # except:
+            #     print("split", benchm)
+            #     break
 
-                # print(pick_drop_orig_num, pick_drop_split_num, pick_drop_split_num/pick_drop_orig_num)
-                # pick_drop_orig_list.append(pick_drop_orig_num)
-                # pick_drop_split_list.append(pick_drop_split_num)
-                # pick_drop_orig_ratio_list.append(pick_drop_split_num/pick_drop_orig_num)
-                aod_num_list.append(aod_num)
-                sorted(count.items())
-                # print(loop_num)
-                # print(count)
-                count = dict(sorted(count.items()))
-                threshold_length = find_threshold_key(count, 0.7)
-                threshold_length_list.append(threshold_length)
-                no_storage_transfer_duration_list.append(no_storage_transfer_duration)
-                no_storage_move_duration_list.append(no_storage_move_duration)
-                no_storage_cir_fidelity_list.append(no_storage_cir_fidelity)
-                no_storage_cir_fidelity_1q_gate_list.append(no_storage_cir_fidelity_1q_gate)
-                no_storage_cir_fidelity_2q_gate_list.append(no_storage_cir_fidelity_2q_gate)
-                no_storage_cir_fidelity_2q_gate_for_idle_list.append(no_storage_cir_fidelity_2q_gate_for_idle)
-                no_storage_cir_fidelity_atom_transfer_list.append(no_storage_cir_fidelity_atom_transfer)
-                no_storage_cir_fidelity_coherence_list.append(no_storage_cir_fidelity_coherence)   
-                no_storage_nstage_list.append(no_storage_nstage)
-                chain_length_list.append(count)
-                loop_num_list.append(loop_num)
-            # print(split_succ, split_fail)
+            # print(pick_drop_orig_num, pick_drop_split_num, pick_drop_split_num/pick_drop_orig_num)
+            # pick_drop_orig_list.append(pick_drop_orig_num)
+            # pick_drop_split_list.append(pick_drop_split_num)
+            # pick_drop_orig_ratio_list.append(pick_drop_split_num/pick_drop_orig_num)
+            aod_num_list.append(aod_num)
+            sorted(count.items())
+            # print(loop_num)
+            # print(count)
+            count = dict(sorted(count.items()))
+            threshold_length = find_threshold_key(count, 0.7)
+            threshold_length_list.append(threshold_length)
+            no_storage_transfer_duration_list.append(no_storage_transfer_duration)
+            no_storage_move_duration_list.append(no_storage_move_duration)
+            no_storage_cir_fidelity_list.append(no_storage_cir_fidelity)
+            no_storage_cir_fidelity_1q_gate_list.append(no_storage_cir_fidelity_1q_gate)
+            no_storage_cir_fidelity_2q_gate_list.append(no_storage_cir_fidelity_2q_gate)
+            no_storage_cir_fidelity_2q_gate_for_idle_list.append(no_storage_cir_fidelity_2q_gate_for_idle)
+            no_storage_cir_fidelity_atom_transfer_list.append(no_storage_cir_fidelity_atom_transfer)
+            no_storage_cir_fidelity_coherence_list.append(no_storage_cir_fidelity_coherence)   
+            no_storage_nstage_list.append(no_storage_nstage)
+            chain_length_list.append(count)
+            loop_num_list.append(loop_num)
+        # print(split_succ, split_fail)
 
-            aod_num_compare[benchm] = [aod_num_compare.get(benchm, []), aod_num_list]
-            # with open(f"data/compare_{benchm}_{method}_double_half_sim_{cost_para2}.txt", 'w') as file:
-            with open(f"data/compare_{benchm}_{method}_double_half_sim6.txt", 'w') as file:
-            # with open(f"data/compare_{benchm}_{method}.txt", 'w') as file:
-                file.write(str([x + y for x, y in zip(no_storage_transfer_duration_list, no_storage_move_duration_list)]) + '\n') 
-                # file.write(str(pick_drop_orig_list) + '\n')  
-                # file.write(str(pick_drop_split_list) + '\n')  
-                # file.write(str(pick_drop_orig_ratio_list) + '\n')
-                file.write(str(loop_num_list) + '\n')  
-                file.write(str(chain_length_list) + '\n')  
-                file.write(str(threshold_length_list) + '\n')
-                file.write(str(no_storage_transfer_duration_list) + '\n')  
-                file.write(str(no_storage_move_duration_list) + '\n')  
-                file.write(str(no_storage_cir_fidelity_list) + '\n')  
-                file.write(str(no_storage_cir_fidelity_1q_gate_list) + '\n')  
-                file.write(str(no_storage_cir_fidelity_2q_gate_list) + '\n')  
-                file.write(str(no_storage_cir_fidelity_2q_gate_for_idle_list) + '\n')  
-                file.write(str(no_storage_cir_fidelity_atom_transfer_list) + '\n')  
-                file.write(str(no_storage_cir_fidelity_coherence_list) + '\n') 
-                file.write(str(no_storage_nstage_list) + '\n') 
-        # print(no_storage_cir_fidelity_list,no_storage_cir_fidelity_atom_transfer_list, no_storage_cir_fidelity_coherence_list)
-    # print(aod_num_compare)
-    # for benchm in bench_list:
-    #     # print(np.array(aod_num_compare[benchm][1])/np.array(aod_num_compare[benchm][0][1]))
-    #     print(benchm)
-    #     print(np.mean((np.array(aod_num_compare[benchm][1])/np.array(aod_num_compare[benchm][0][1]))[1:]))
-    #     print(np.mean((np.array(aod_num_compare[benchm][1])/np.array(aod_num_compare[benchm][0][1]))[2:]))
-    #     print(np.mean((np.array(aod_num_compare[benchm][1])/np.array(aod_num_compare[benchm][0][1]))[3:]))
+        aod_num_compare[benchm] = [aod_num_compare.get(benchm, []), aod_num_list]
+        # with open(f"data/compare_{benchm}_{method}_double_half_sim_{cost_para2}.txt", 'w') as file:
+        with open(f"data/compare_{benchm}_{method}_double_half_middle_conflict.txt", 'w') as file:
+        # with open(f"data/compare_{benchm}_{method}.txt", 'w') as file:
+            file.write(str([x + y for x, y in zip(no_storage_transfer_duration_list, no_storage_move_duration_list)]) + '\n') 
+            # file.write(str(pick_drop_orig_list) + '\n')  
+            # file.write(str(pick_drop_split_list) + '\n')  
+            # file.write(str(pick_drop_orig_ratio_list) + '\n')
+            file.write(str(loop_num_list) + '\n')  
+            file.write(str(chain_length_list) + '\n')  
+            file.write(str(threshold_length_list) + '\n')
+            file.write(str(no_storage_transfer_duration_list) + '\n')  
+            file.write(str(no_storage_move_duration_list) + '\n')  
+            file.write(str(no_storage_cir_fidelity_list) + '\n')  
+            file.write(str(no_storage_cir_fidelity_1q_gate_list) + '\n')  
+            file.write(str(no_storage_cir_fidelity_2q_gate_list) + '\n')  
+            file.write(str(no_storage_cir_fidelity_2q_gate_for_idle_list) + '\n')  
+            file.write(str(no_storage_cir_fidelity_atom_transfer_list) + '\n')  
+            file.write(str(no_storage_cir_fidelity_coherence_list) + '\n') 
+            file.write(str(no_storage_nstage_list) + '\n') 
+    # print(no_storage_cir_fidelity_list,no_storage_cir_fidelity_atom_transfer_list, no_storage_cir_fidelity_coherence_list)
+# print(aod_num_compare)
+# for benchm in bench_list:
+#     # print(np.array(aod_num_compare[benchm][1])/np.array(aod_num_compare[benchm][0][1]))
+#     print(benchm)
+#     print(np.mean((np.array(aod_num_compare[benchm][1])/np.array(aod_num_compare[benchm][0][1]))[1:]))
+#     print(np.mean((np.array(aod_num_compare[benchm][1])/np.array(aod_num_compare[benchm][0][1]))[2:]))
+#     print(np.mean((np.array(aod_num_compare[benchm][1])/np.array(aod_num_compare[benchm][0][1]))[3:]))

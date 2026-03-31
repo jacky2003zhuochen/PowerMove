@@ -1,6 +1,6 @@
 from scheduler.gate_scheduler import gate_scheduling
 from placer.placer import place_qubit
-from Coll_Moves_Scheduler import *
+from Coll_Moves_Scheduler_optimized import *
 from Continuous_Router import *
 from Stage_Scheduler import *
 import matplotlib.pyplot as plt
@@ -97,7 +97,7 @@ def update_counter_auto(counter: dict, arr: np.ndarray):
         counter[u] += c
     return counter
 
-def mvqc(cz_blocks, Row, n, storage_flag, d, num_aod, method, cost_para, para1, cost_para2, para2, thre, h, a, location_size=2, iter_num=2, aod_size_lim=300):
+def mvqc(cz_blocks, Row, n, storage_flag, d, num_aod, method, cost_para, para1, cost_para2, para2, thre, h, a, location_size=2, iter_num=2):
     N_Block = d
     # Row *= 2
     # print(Row**2)
@@ -195,8 +195,6 @@ def mvqc(cz_blocks, Row, n, storage_flag, d, num_aod, method, cost_para, para1, 
     else:
         qubits_not_in_storage = set(range(n))
 
-    if method == "powermove":
-        location_size = 4
     if "SLM" in method:
         location_size = int(method[-1])
         # location_size = int(method[method.find("slm")+1])
@@ -275,7 +273,7 @@ def mvqc(cz_blocks, Row, n, storage_flag, d, num_aod, method, cost_para, para1, 
         empty_space, parallel_move_groups, num_movement_stage, cir_qubit_idle_time, cir_fidelity_atom_transfer, list_transfer_duration, list_movement_duration, target_location_index, change_dest, move_in_loop, count, loop_num, aod_num, AOD_moveTime, AOD_move_num, span, m_length = coll_moves_scheduler(empty_space, initial_space, n, Row, move_distance, move_group, num_aod, move_in_qubits, move_out_qubits,
         qubits_not_in_storage, cir_qubit_idle_time, cir_fidelity_atom_transfer, list_transfer_duration,
         list_movement_duration, num_movement_stage, location_index, target_location_index, location_size, 
-        method, count, loop_num, split_fail, split_succ,cost_para, para1, cost_para2, para2, thre, h, a, iter_num=iter_num, aod_size_lim=aod_size_lim)
+        method, count, loop_num, split_fail, split_succ,cost_para, para1, cost_para2, para2, thre, h, a, iter_num=iter_num)
 
         # print(aod_num, "aod_num")
         aod_sum += aod_num

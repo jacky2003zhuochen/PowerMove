@@ -1,0 +1,37 @@
+{
+  "description": "Raw T_exe and fidelity data for rebuttal_main_fig4 (9 benchmarks, 3 methods: ZAC / PowerM* w/ sto / ORBIT w/ sto)",
+  "source_script": "rebuttal/main_fig.py",
+  "benchmarks": ["cat_260", "ghz_255", "wstate_380", "ising_420", "qft_160", "qaoa_rand_100", "qaoa_regu_100", "qv_100", "rcs_100"],
+  "parameters": {
+    "cat_260":       { "n": 260, "Row": 12, "a": 3, "cost_para": 0.5, "sim_para": 1.0, "cost_para2": 0.3, "sim_para2": 1.0,    "iter_num": 2 },
+    "ghz_255":       { "n": 255, "Row": 12, "a": 3, "cost_para": 0.3, "sim_para": 1.0, "cost_para2": 1.0, "sim_para2": 1.0,    "iter_num": 2 },
+    "wstate_380":    { "n": 380, "Row": 14, "a": 5, "cost_para": 0.5, "sim_para": 0.4, "cost_para2": 0.3, "sim_para2": 0.15,   "iter_num": 2 },
+    "ising_420":     { "n": 420, "Row": 15, "a": 4, "cost_para": 1.0, "sim_para": 1.0, "cost_para2": 0.3, "sim_para2": 1.0,    "iter_num": 2 },
+    "qft_160":       { "n": 160, "Row":  9, "a": 3, "cost_para": 0.4, "sim_para": 0.5, "cost_para2": 1.5, "sim_para2": 0.4,    "iter_num": 2 },
+    "qaoa_rand_100": { "n": 100, "Row": 10, "a": 1, "cost_para": 0.3, "sim_para": 0.45,"cost_para2": 3.0, "sim_para2": 0.55,   "iter_num": 2 },
+    "qaoa_regu_100": { "n": 100, "Row": 10, "a": 1, "cost_para": 0.6, "sim_para": 0.45,"cost_para2": 0.9, "sim_para2": 0.4,    "iter_num": 2 },
+    "qv_100":        { "n": 100, "Row":  8, "a": 1, "cost_para": 0.4, "sim_para": 0.5, "cost_para2": 1.5, "sim_para2": 0.4,    "iter_num": 2 },
+    "rcs_100":       { "n": 100, "Row":  8, "a": 1, "cost_para": 0.4, "sim_para": 0.5, "cost_para2": 1.5, "sim_para2": 0.4,    "iter_num": 2 }
+  },
+  "T_exe": {
+    "ZAC":     [78643,  79051,  215758,    45816,  417606,     328038,     107881,     163239,         201993],
+    "PowerM":  [11212,  11254,  70500,     54536,  440573,     319722,     73988,      194443,         305664.33],
+    "ORBIT":   [5052,   5423,   45631,     26572,  366785,     196560,     38697.4,    74477,          142034]
+  },
+  "fidelity": {
+    "ZAC":     [4.37e-08, 5.792e-08, 4.63e-30,  9.96e-12,  1.01e-41,  4.21e-22,  2.57e-06,  8.388188e-24, 1.397193e-19],
+    "PowerM":  [0.0228,   0.0241,    1.45e-11,  7.141e-11, 1.0108e-41,2.61e-20,  8.41e-05,  2.050207e-17, 6.144557e-16],
+    "ORBIT":   [0.0606,   0.0554,    8.98e-09,  3.909e-08, 6.51e-40,  6.16e-16,  0.0012,    1.439571e-12, 4.366904e-12]
+  },
+  "data_sources": {
+    "cat_260":       "data/rebuttal/storage_cat_*_wide_5_new.txt (a=5), then tuned in rebuttal_orbit_star.py with a=3",
+    "ghz_255":       "data/rebuttal/storage_ghz_*_wide_5_new.txt (a=5), then tuned with a=3",
+    "wstate_380":    "data/rebuttal/storage_wstate_*_wide_5_new_double.txt (a=5)",
+    "ising_420":     "data/rebuttal/storage_ising_*_wide_5_new.txt (a=5), then tuned with a=4",
+    "qft_160":       "data/rebuttal/storage_qft_*_wide3.txt (index 2, qft sizes=[29,63,160,320])",
+    "qaoa_rand_100": "data/rebuttal/storage_rand_0.5_*_wide4.txt (n=100)",
+    "qaoa_regu_100": "data/rebuttal/storage_regular_10_*_wide3_double.txt (n=100)",
+    "qv_100":        "data1/fid_aba_with_sto.json",
+    "rcs_100":       "data1/fid_aba_with_sto.json"
+  }
+}
